@@ -1,0 +1,8 @@
+{
+  "name": "okr-suite-piacentini",
+  "version": "1.0.0",
+  "description": "Sistema de Gestão de OKRs - Piacentini",
+  "dependencies": {
+    "googleapis": "^140.0.0"
+  }
+}
