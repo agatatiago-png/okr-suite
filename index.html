@@ -61,6 +61,7 @@ main{margin-left:var(--nav-w);flex:1;background:#f0f2f5;min-height:100vh}
 .bg2{background:#dcfce7;color:#166534}.by{background:#fef9c3;color:#854d0e}
 .br{background:#fef2f2;color:#991b1b}.bb{background:var(--blue-light);color:var(--blue)}
 .bor{background:var(--orange-light);color:#92400e}.bgr{background:#f3f4f6;color:#374151}
+.bpu{background:#f5f3ff;color:#6d28d9}
 .bdot{width:5px;height:5px;border-radius:50%;background:currentColor}
 .hd{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -78,10 +79,10 @@ tr:hover td{background:#fafbfc}
 .fta{resize:vertical;min-height:72px}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-.ua{border:2px dashed var(--border2);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;background:var(--gray-lighter)}
+.ua{border:2px dashed var(--border2);border-radius:10px;padding:24px;text-align:center;cursor:pointer;background:var(--gray-lighter)}
 .ua:hover{border-color:var(--orange);background:var(--orange-light)}
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding-top:40px;overflow-y:auto}
-.md{background:var(--white);border-radius:14px;width:560px;max-width:95vw;border:1px solid var(--border);margin-bottom:40px}
+.md{background:var(--white);border-radius:14px;width:580px;max-width:95vw;border:1px solid var(--border);margin-bottom:40px}
 .mh{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .mt{font-size:15px;font-weight:700;color:var(--gray-dark)}
 .mbd{padding:22px;max-height:65vh;overflow-y:auto}
@@ -109,6 +110,7 @@ tr:hover td{background:#fafbfc}
 .area-card:hover{border-color:var(--orange);background:var(--orange-light)}
 .podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin-bottom:16px}
 .rrow{background:var(--white);border:1px solid var(--border);border-radius:9px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.snap-box{background:var(--blue-light);border:1px solid var(--blue-border,#b8cef5);border-radius:10px;padding:14px 16px;margin-bottom:14px}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:#d1d5de;border-radius:3px}
 </style>
@@ -144,61 +146,56 @@ tr:hover td{background:#fafbfc}
 <script>
 const GAS='https://script.google.com/macros/s/AKfycbwnAdAcSaTnD6BxKYBxgsRwZqRbi1oSZsEZ00qe7m7cD4mpe8NYhojDiLt3F3dNOq8_wQ/exec';
 const MOS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const STATUS_INIT=['Não iniciada','Em andamento','Concluída','Cancelada','Pausada','Concluída com atraso'];
 const CORS=['#e8621a','#1a4fa0','#16a34a','#7c3aed','#0891b2','#dc2626','#d97706','#0d9488'];
 
-// ── TOAST ──
-function toast(msg,t='ok'){
-  const e=document.getElementById('toast');
-  e.textContent=msg;e.className=`toast show ${t}`;
-  setTimeout(()=>e.className='toast',3500);
-}
+function toast(msg,t='ok'){const e=document.getElementById('toast');e.textContent=msg;e.className=`toast show ${t}`;setTimeout(()=>e.className='toast',3500)}
 
-// ── API — tudo via GET para evitar CORS ──
 async function apiG(aba){
-  try{
-    const r=await fetch(`${GAS}?acao=listar&aba=${aba}`);
-    const j=await r.json();
-    return j.dados||[];
-  }catch(e){console.error('GET erro:',e);return[];}
+  try{const r=await fetch(`${GAS}?acao=listar&aba=${aba}`);return(await r.json()).dados||[]}
+  catch(e){console.error(e);return[]}
 }
-
 async function apiP(aba,body){
-  try{
-    const enc=encodeURIComponent(JSON.stringify(body));
-    const r=await fetch(`${GAS}?acao=criar&aba=${aba}&body=${enc}`);
-    return await r.json();
-  }catch(e){return{ok:false,erro:e.message};}
+  try{const r=await fetch(`${GAS}?acao=criar&aba=${aba}&body=${encodeURIComponent(JSON.stringify(body))}`);return await r.json()}
+  catch(e){return{ok:false,erro:e.message}}
 }
-
 async function apiU(aba,body){
-  try{
-    const enc=encodeURIComponent(JSON.stringify(body));
-    const r=await fetch(`${GAS}?acao=atualizar&aba=${aba}&body=${enc}`);
-    return await r.json();
-  }catch(e){return{ok:false,erro:e.message};}
+  try{const r=await fetch(`${GAS}?acao=atualizar&aba=${aba}&body=${encodeURIComponent(JSON.stringify(body))}`);return await r.json()}
+  catch(e){return{ok:false,erro:e.message}}
+}
+async function apiSnap(body){
+  try{const r=await fetch(`${GAS}?acao=snapshot&aba=snapshots&body=${encodeURIComponent(JSON.stringify(body))}`);return await r.json()}
+  catch(e){return{ok:false,erro:e.message}}
 }
 
-// ── HELPERS ──
 function hc(p){p=parseInt(p)||0;return p>=60?'pg':p>=40?'po':'pr'}
 function pb(p){p=parseInt(p)||0;return`<div class="pb"><div class="pf ${hc(p)}" style="width:${Math.min(p,100)}%"></div></div>`}
 function bdg(t){
   const m={'Publicado':'bg2','Pendente':'by','Em andamento':'bb','Concluída':'bg2','Não iniciada':'bgr',
-    'Cancelada':'br','Aprovado':'bg2','Reprovado':'br','Concluída com atraso':'by',
+    'Cancelada':'br','Aprovado':'bg2','Reprovado':'br','Concluída com atraso':'by','Pausada':'bpu',
     'ADM':'bor','CEO':'bb','GESTOR':'bg2','sim':'bg2'};
-  return`<span class="bdg ${m[t]||'bgr'}">${t}</span>`;
+  return`<span class="bdg ${m[t]||'bgr'}">${t}</span>`
 }
 function hbdg(h){
   const m={green:'bg2',yellow:'by',red:'br'};
   const l={green:'No prazo',yellow:'Atenção',red:'Em risco'};
-  return`<span class="bdg ${m[h]||'bgr'}"><span class="bdot"></span>${l[h]||h}</span>`;
+  return`<span class="bdg ${m[h]||'bgr'}"><span class="bdot"></span>${l[h]||h}</span>`
 }
 function ld(){return`<div class="ld"><div class="sp"></div> Carregando dados...</div>`}
 function ini(n){return(n||'?').split(' ').map(x=>x[0]||'').slice(0,2).join('').toUpperCase()||'?'}
 function corN(n){let h=0;for(let c of(n||''))h=(h*31+c.charCodeAt(0))%CORS.length;return CORS[h]}
 function av(n,s=36){return`<div style="width:${s}px;height:${s}px;border-radius:50%;background:${corN(n)};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*.3)}px;font-weight:800;color:#fff;flex-shrink:0">${ini(n)}</div>`}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;')}
+function mesOpts(sel){return MOS.map((m,i)=>`<option value="${i+1}"${parseInt(sel)===i+1?' selected':''}>${m}</option>`).join('')}
+function anoOpts(){const y=new Date().getFullYear();return[y-1,y,y+1].map(a=>`<option value="${a}"${a===y?' selected':''}>${a}</option>`).join('')}
 
-// ── NAV ──
+// Retorna o snapshot mais recente até o mês/ano indicado para um item
+function snapAteMes(snaps,tipo,item_id,mes,ano){
+  const rel=snaps.filter(s=>s.tipo===tipo&&s.item_id==item_id&&(parseInt(s.ano)<parseInt(ano)||(parseInt(s.ano)===parseInt(ano)&&parseInt(s.mes)<=parseInt(mes))));
+  if(!rel.length)return null;
+  return rel.sort((a,b)=>{const da=parseInt(a.ano)*12+parseInt(a.mes);const db=parseInt(b.ano)*12+parseInt(b.mes);return db-da})[0];
+}
+
 function go(p){
   document.querySelectorAll('.nm').forEach(n=>n.classList.remove('active'));
   const idx={dashboard:0,ranking:1,areas:3,usuarios:4,'company-okrs':6,'area-okrs':7,'key-results':8,initiatives:9,manutencao:11,approvals:13};
@@ -206,7 +203,7 @@ function go(p){
   if(items[idx[p]])items[idx[p]].classList.add('active');
   ({dashboard:pDash,ranking:pRank,areas:pAreas,usuarios:pUsers,
     'company-okrs':pCOkr,'area-okrs':pAOkr,'key-results':pKR,
-    initiatives:pInit,manutencao:pMaint,approvals:pApprov})[p]?.();
+    initiatives:pInit,manutencao:pMaint,approvals:pApprov})[p]?.()
 }
 function openM(h){document.getElementById('mr').innerHTML=`<div class="mo" onclick="if(event.target===this)closeM()">${h}</div>`}
 function closeM(){document.getElementById('mr').innerHTML=''}
@@ -215,63 +212,106 @@ function closeM(){document.getElementById('mr').innerHTML=''}
 // DASHBOARD
 // ════════════════════════════════
 async function pDash(){
+  const now=new Date();
   document.getElementById('main').innerHTML=`
-  <div class="ph"><div><div class="pt">Dashboard Executivo</div><div class="ps">Acompanhamento estratégico em tempo real</div></div></div>
+  <div class="ph"><div><div class="pt">Dashboard Executivo</div><div class="ps">Acompanhamento estratégico com histórico mensal</div></div></div>
   <div class="cnt">
     <div class="fb">
       <span class="fl">🔍 Área:</span>
       <select class="fs" id="fa" onchange="lDash()"><option value="">Todas as Áreas</option></select>
       <div class="fd"></div>
-      <span class="fl">📅 Mês:</span>
-      <select class="fs" id="fm">${MOS.map((m,i)=>`<option value="${i+1}"${i===new Date().getMonth()?' selected':''}>${m} ${new Date().getFullYear()}</option>`).join('')}</select>
+      <span class="fl">📅 Mês referência:</span>
+      <select class="fs" id="fmes" onchange="lDash()">${mesOpts(now.getMonth()+1)}</select>
+      <select class="fs" id="fano" onchange="lDash()">${anoOpts()}</select>
     </div>
     <div id="dc">${ld()}</div>
   </div>`;
   await lDash();
 }
+
 async function lDash(){
-  const[okrs,krs,aokrs,aprov]=await Promise.all([apiG('okr_companhia'),apiG('key_results'),apiG('okr_area'),apiG('aprovacoes')]);
+  const[okrs,krs,aokrs,aprov,snaps,inits]=await Promise.all([
+    apiG('okr_companhia'),apiG('key_results'),apiG('okr_area'),
+    apiG('aprovacoes'),apiG('snapshots'),apiG('iniciativas')
+  ]);
   const fa=document.getElementById('fa');
   const areas=[...new Set(aokrs.map(o=>o.area).filter(Boolean))];
   if(fa&&fa.options.length===1)areas.forEach(a=>{fa.innerHTML+=`<option value="${a}">${a}</option>`});
   const af=fa?.value||'';
-  const list=af?aokrs.filter(o=>o.area===af):okrs;
-  const tp=list.length?Math.round(list.reduce((s,o)=>s+(parseInt(o.progresso)||0),0)/list.length):0;
-  const risco=krs.filter(k=>k.saude==='red').length;
+  const mes=parseInt(document.getElementById('fmes')?.value)||new Date().getMonth()+1;
+  const ano=parseInt(document.getElementById('fano')?.value)||new Date().getFullYear();
+  const mesLabel=`${MOS[mes-1]}/${ano}`;
+
+  // Filtra OKRs pela área
+  const listaOkrs=af?aokrs.filter(o=>o.area===af):okrs;
+
+  // Para cada KR, pega snapshot do mês ou mais recente anterior
+  const krsComSnap=krs.map(k=>{
+    const snap=snapAteMes(snaps,'kr',k.id,mes,ano);
+    return{...k,
+      _snapProg:snap?parseInt(snap.pct)||0:parseInt(k.progresso)||0,
+      _snapSaude:snap?snap.saude:k.saude||'green',
+      _snapValor:snap?snap.valor_atual:k.atual||0
+    };
+  });
+
+  // Para cada iniciativa, pega snapshot do mês ou mais recente anterior
+  const initsComSnap=inits.map(i=>{
+    const snap=snapAteMes(snaps,'iniciativa',i.id,mes,ano);
+    return{...i,
+      _snapStatus:snap?snap.status:i.status||'Não iniciada',
+      _snapPct:snap?parseInt(snap.pct)||0:parseInt(i.pct)||0
+    };
+  });
+
+  const tp=listaOkrs.length?Math.round(listaOkrs.reduce((s,o)=>s+(parseInt(o.progresso)||0),0)/listaOkrs.length):0;
+  const risco=krsComSnap.filter(k=>k._snapSaude==='red').length;
   const pend=aprov.filter(a=>a.status==='Pendente').length;
   document.getElementById('bc').textContent=pend;
+
   const el=document.getElementById('dc');if(!el)return;
   el.innerHTML=`
   <div class="mg">
-    <div class="mc"><div style="font-size:28px;margin-bottom:8px">📊</div><div class="ml">Progresso Geral</div><div class="mv" style="color:var(--orange)">${tp}%</div><div style="margin-top:8px">${pb(tp)}</div></div>
-    <div class="mc"><div style="font-size:28px;margin-bottom:8px">🎯</div><div class="ml">OKRs Ativos</div><div class="mv">${list.length}</div></div>
-    <div class="mc"><div style="font-size:28px;margin-bottom:8px">⚠️</div><div class="ml">KRs em Risco</div><div class="mv" style="color:var(--danger)">${risco}</div></div>
+    <div class="mc"><div style="font-size:28px;margin-bottom:8px">📊</div><div class="ml">Progresso — ${mesLabel}</div><div class="mv" style="color:var(--orange)">${tp}%</div><div style="margin-top:8px">${pb(tp)}</div></div>
+    <div class="mc"><div style="font-size:28px;margin-bottom:8px">🎯</div><div class="ml">OKRs Ativos</div><div class="mv">${listaOkrs.length}</div></div>
+    <div class="mc"><div style="font-size:28px;margin-bottom:8px">⚠️</div><div class="ml">KRs em Risco — ${mesLabel}</div><div class="mv" style="color:var(--danger)">${risco}</div></div>
     <div class="mc"><div style="font-size:28px;margin-bottom:8px">🕐</div><div class="ml">Aprovações Pendentes</div><div class="mv" style="color:var(--warning)">${pend}</div>
       <div style="margin-top:6px"><button class="btn bg bsm" onclick="go('approvals')">Ver →</button></div>
     </div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-    <div class="card"><div class="ch"><div class="ct">🔴 Saúde dos OKRs</div></div><div class="cb">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card"><div class="ch"><div class="ct">📊 KRs KPI — ${mesLabel}</div></div><div class="cb">
       <div style="display:flex;flex-direction:column;gap:10px">
-        ${list.slice(0,5).map(o=>`
+        ${krsComSnap.filter(k=>k.tipo==='KPI').slice(0,5).map(k=>`
         <div style="display:flex;align-items:center;gap:10px">
-          <div class="hd" style="background:${o.saude==='green'?'var(--success)':o.saude==='yellow'?'var(--warning)':'var(--danger)'}"></div>
-          <div style="flex:1;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.nome}</div>
-          <div style="font-size:13px;font-weight:800;color:${parseInt(o.progresso)>=60?'var(--success)':parseInt(o.progresso)>=40?'var(--warning)':'var(--danger)'}">${o.progresso||0}%</div>
-        </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--gray-mid)">Nenhum OKR cadastrado ainda</div>'}
+          <div class="hd" style="background:${k._snapSaude==='green'?'var(--success)':k._snapSaude==='yellow'?'var(--warning)':'var(--danger)'}"></div>
+          <div style="flex:1;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${k.nome}</div>
+          <div style="font-size:11px;color:var(--gray-mid)">${k.unidade} ${parseFloat(k._snapValor||0).toLocaleString('pt-BR')}</div>
+          <div style="font-size:13px;font-weight:800;color:${k._snapProg>=60?'var(--success)':k._snapProg>=40?'var(--warning)':'var(--danger)'}">${k._snapProg}%</div>
+        </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--gray-mid)">Nenhum KR KPI cadastrado</div>'}
       </div>
     </div></div>
-    <div class="card"><div class="ch"><div class="ct">⚠️ KRs com Atenção</div></div><div class="cb">
+    <div class="card"><div class="ch"><div class="ct">✅ Iniciativas — ${mesLabel}</div></div><div class="cb">
       <div style="display:flex;flex-direction:column;gap:8px">
-        ${krs.filter(k=>k.saude!=='green').slice(0,4).map(k=>`
-        <div style="background:var(--gray-lighter);border-radius:8px;padding:10px 12px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-            <div style="font-size:12px;font-weight:600">${k.nome}</div>${hbdg(k.saude)}
-          </div>${pb(k.progresso)}
-        </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--gray-mid)">Todos os KRs no prazo ✅</div>'}
+        ${initsComSnap.slice(0,5).map(i=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="font-size:12px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.nome}</div>
+          ${bdg(i._snapStatus)}
+        </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--gray-mid)">Nenhuma iniciativa cadastrada</div>'}
       </div>
     </div></div>
-  </div>`;
+  </div>
+  <div class="card"><div class="ch"><div class="ct">⚠️ KRs com Atenção — ${mesLabel}</div></div><div class="cb">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
+      ${krsComSnap.filter(k=>k._snapSaude!=='green').slice(0,6).map(k=>`
+      <div style="background:var(--gray-lighter);border-radius:8px;padding:10px 12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <div style="font-size:12px;font-weight:600;flex:1;margin-right:6px">${k.nome}</div>${hbdg(k._snapSaude)}
+        </div>${pb(k._snapProg)}
+        <div style="text-align:right;font-size:11px;font-weight:700;margin-top:3px">${k._snapProg}%</div>
+      </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--gray-mid);grid-column:1/-1">Todos os KRs no prazo ✅</div>'}
+    </div>
+  </div></div>`;
 }
 
 // ════════════════════════════════
@@ -281,9 +321,9 @@ async function pRank(){
   document.getElementById('main').innerHTML=`
   <div class="ph"><div><div class="pt">🏆 Ranking de Desempenho</div><div class="ps">Comparativo por área</div></div></div>
   <div class="cnt">
-    <div class="fb">
-      <span class="fl">📅 Mês:</span>
-      <select class="fs" id="rm" onchange="lRank()">${MOS.map((m,i)=>`<option value="${i+1}"${i===new Date().getMonth()?' selected':''}>${m}</option>`).join('')}</select>
+    <div class="fb"><span class="fl">📅 Mês:</span>
+      <select class="fs" id="rm" onchange="lRank()">${mesOpts(new Date().getMonth()+1)}</select>
+      <select class="fs" id="ra" onchange="lRank()">${anoOpts()}</select>
     </div>
     <div id="rc">${ld()}</div>
   </div>`;
@@ -298,7 +338,7 @@ async function lRank(){
     return{area,pct,resp:list[0]?.responsavel||area};
   }).sort((a,b)=>b.pct-a.pct);
   const el=document.getElementById('rc');if(!el)return;
-  if(!dados.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-mid)">Nenhum dado de área disponível ainda.</div>';return}
+  if(!dados.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-mid)">Nenhum dado disponível.</div>';return}
   const tr=['🥇','🥈','🥉'];
   const top3=dados.slice(0,3);
   const po=[top3[1],top3[0],top3[2]].filter(Boolean);
@@ -338,13 +378,10 @@ async function pAreas(){
 async function lAreas(){
   const areas=await apiG('areas');
   const el=document.getElementById('al2');if(!el)return;
-  if(!areas.filter(a=>a.ativo!=='não').length){
-    el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)"><div style="font-size:32px;margin-bottom:10px">🏬</div><div style="font-size:14px;font-weight:600;margin-bottom:6px">Nenhuma área cadastrada</div><div style="font-size:13px">Clique em "+ Nova Área" para começar</div></div>';
-    return;
-  }
+  const ativas=areas.filter(a=>a.ativo!=='não');
+  if(!ativas.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)"><div style="font-size:32px;margin-bottom:10px">🏬</div><div style="font-size:14px;font-weight:600">Nenhuma área cadastrada</div><div style="font-size:13px;margin-top:4px">Clique em "+ Nova Área" para começar</div></div>';return}
   el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">
-    ${areas.filter(a=>a.ativo!=='não').map(a=>`
-    <div class="area-card" onclick='mEditArea(${JSON.stringify(a).replace(/"/g,"&quot;")})'>
+    ${ativas.map(a=>`<div class="area-card" onclick='mEditArea(${JSON.stringify(a).replace(/"/g,"&quot;")})'>
       <div style="width:48px;height:48px;border-radius:10px;background:var(--orange-light);border:1px solid var(--orange-border);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🏬</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:700;margin-bottom:2px">${a.nome}</div>
@@ -355,53 +392,37 @@ async function lAreas(){
   </div>`;
 }
 function mNovaArea(){
-  openM(`<div class="md">
-    <div class="mh"><div class="mt">Nova Área</div><button class="mc2" onclick="closeM()">×</button></div>
-    <div class="mbd">
-      <div class="fg"><label class="flb">Nome da Área *</label><input class="fi" id="an" placeholder="Ex: Marketing, Financeiro..."/></div>
-      <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="ad" placeholder="Responsabilidades da área..."></textarea></div>
-      <div class="fg"><label class="flb">Responsável</label><input class="fi" id="ar" placeholder="Nome do gestor"/></div>
-    </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="bsa" onclick="svArea()">💾 Salvar</button>
-    </div>
-  </div>`);
+  openM(`<div class="md"><div class="mh"><div class="mt">Nova Área</div><button class="mc2" onclick="closeM()">×</button></div>
+  <div class="mbd">
+    <div class="fg"><label class="flb">Nome da Área *</label><input class="fi" id="an" placeholder="Ex: Marketing, Financeiro..."/></div>
+    <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="ad" placeholder="Responsabilidades..."></textarea></div>
+    <div class="fg"><label class="flb">Responsável</label><input class="fi" id="ar" placeholder="Nome do gestor"/></div>
+  </div>
+  <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bsa" onclick="svArea()">💾 Salvar</button></div></div>`);
 }
 function mEditArea(a){
-  openM(`<div class="md">
-    <div class="mh"><div class="mt">Editar — ${a.nome}</div><button class="mc2" onclick="closeM()">×</button></div>
-    <div class="mbd">
-      <div class="fg"><label class="flb">Nome da Área *</label><input class="fi" id="an" value="${esc(a.nome)}"/></div>
-      <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="ad">${esc(a.descricao||'')}</textarea></div>
-      <div class="fg"><label class="flb">Responsável</label><input class="fi" id="ar" value="${esc(a.responsavel||'')}"/></div>
-      <div class="fg"><label class="flb">Status</label>
-        <select class="fsl" id="aativo"><option value="sim"${a.ativo==='sim'?' selected':''}>Ativa</option><option value="não"${a.ativo==='não'?' selected':''}>Inativa</option></select>
-      </div>
-    </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="bsa" onclick='svEditArea(${JSON.stringify(a).replace(/"/g,"&quot;")})'>💾 Salvar</button>
-    </div>
-  </div>`);
+  openM(`<div class="md"><div class="mh"><div class="mt">Editar — ${a.nome}</div><button class="mc2" onclick="closeM()">×</button></div>
+  <div class="mbd">
+    <div class="fg"><label class="flb">Nome *</label><input class="fi" id="an" value="${esc(a.nome)}"/></div>
+    <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="ad">${esc(a.descricao||'')}</textarea></div>
+    <div class="fg"><label class="flb">Responsável</label><input class="fi" id="ar" value="${esc(a.responsavel||'')}"/></div>
+    <div class="fg"><label class="flb">Status</label><select class="fsl" id="aativo"><option value="sim"${a.ativo==='sim'?' selected':''}>Ativa</option><option value="não"${a.ativo==='não'?' selected':''}>Inativa</option></select></div>
+  </div>
+  <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bsa" onclick='svEditArea(${JSON.stringify(a).replace(/"/g,"&quot;")})'>💾 Salvar</button></div></div>`);
 }
 async function svArea(){
-  const btn=document.getElementById('bsa');
-  const n=document.getElementById('an').value.trim();
-  if(!n){toast('Informe o nome da área','err');return}
+  const btn=document.getElementById('bsa');const n=document.getElementById('an').value.trim();
+  if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiP('areas',{nome:n,descricao:document.getElementById('ad').value,responsavel:document.getElementById('ar').value});
-  if(r.ok){toast('Área criada! ✅');closeM();lAreas();}
-  else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('Área criada! ✅');closeM();lAreas();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 async function svEditArea(a){
-  const btn=document.getElementById('bsa');
-  const n=document.getElementById('an').value.trim();
+  const btn=document.getElementById('bsa');const n=document.getElementById('an').value.trim();
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiU('areas',{...a,nome:n,descricao:document.getElementById('ad').value,responsavel:document.getElementById('ar').value,ativo:document.getElementById('aativo').value});
-  if(r.ok){toast('Área atualizada! ✅');closeM();lAreas();}
-  else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('Área atualizada! ✅');closeM();lAreas();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 // ════════════════════════════════
@@ -417,78 +438,52 @@ async function pUsers(){
 async function lUsers(){
   const users=await apiG('usuarios');
   const el=document.getElementById('ul');if(!el)return;
-  if(!users.length){
-    el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)"><div style="font-size:32px;margin-bottom:10px">👥</div><div style="font-size:14px;font-weight:600;margin-bottom:6px">Nenhum usuário cadastrado</div></div>';return;
-  }
+  if(!users.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)"><div style="font-size:32px;margin-bottom:10px">👥</div><div style="font-size:14px;font-weight:600">Nenhum usuário cadastrado</div></div>';return}
   el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
     ${users.map(u=>`<div class="uc" onclick='mUser(${JSON.stringify(u).replace(/"/g,"&quot;")})'>${av(u.nome,48)}
-      <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:700;margin-bottom:2px">${u.nome||'—'}</div>
-        <div style="font-size:12px;color:var(--gray-mid);margin-bottom:5px">${u.area||'—'} · ${u.email||'—'}</div>
-        ${bdg(u.tipo||'GESTOR')}
-      </div>
-    </div>`).join('')}
+    <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;margin-bottom:2px">${u.nome||'—'}</div>
+    <div style="font-size:12px;color:var(--gray-mid);margin-bottom:5px">${u.area||'—'} · ${u.email||'—'}</div>${bdg(u.tipo||'GESTOR')}</div></div>`).join('')}
   </div>`;
 }
 async function mUser(u){
-  const areas=await apiG('areas');
-  const novo=!u;
-  openM(`<div class="md">
-    <div class="mh"><div class="mt">${novo?'Novo Usuário':`Editar — ${u.nome}`}</div><button class="mc2" onclick="closeM()">×</button></div>
-    <div class="mbd">
-      <div style="text-align:center;margin-bottom:18px">
-        <div class="ua" onclick="document.getElementById('pi').click()">
-          <div style="width:70px;height:70px;border-radius:50%;background:var(--orange-light);border:2px solid var(--orange-border);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:28px" id="pp">${u?ini(u.nome):'📷'}</div>
-          <div style="font-size:12px;font-weight:600;color:var(--gray-mid)">Clique para enviar foto</div>
-        </div>
-        <input type="file" id="pi" accept="image/*" style="display:none" onchange="prvFoto(event)"/>
-      </div>
-      <div class="fr">
-        <div class="fg"><label class="flb">Nome completo *</label><input class="fi" id="un" value="${esc(u?.nome||'')}" placeholder="Nome e sobrenome"/></div>
-        <div class="fg"><label class="flb">Área *</label>
-          <select class="fsl" id="ua">
-            <option value="">— Selecione —</option>
-            ${areas.filter(a=>a.ativo!=='não').map(a=>`<option value="${esc(a.nome)}"${u?.area===a.nome?' selected':''}>${a.nome}</option>`).join('')}
-          </select>
-        </div>
-      </div>
-      <div class="fg"><label class="flb">E-mail *</label><input class="fi" id="ue" type="email" value="${esc(u?.email||'')}" placeholder="email@empresa.com"/></div>
-      <div class="fr">
-        <div class="fg"><label class="flb">${novo?'Senha *':'Nova Senha (em branco = manter)'}</label><input class="fi" id="us" type="password" placeholder="••••••••"/></div>
-        <div class="fg"><label class="flb">Confirmar Senha</label><input class="fi" id="us2" type="password" placeholder="••••••••"/></div>
-      </div>
-      <div class="fg"><label class="flb">Tipo de Usuário *</label>
-        <select class="fsl" id="ut">
-          <option value="ADM"${u?.tipo==='ADM'?' selected':''}>ADM — Administrador</option>
-          <option value="CEO"${u?.tipo==='CEO'?' selected':''}>CEO — Visão estratégica</option>
-          <option value="GESTOR"${u?.tipo==='GESTOR'?' selected':''}>Gestor de Área</option>
-        </select>
-      </div>
+  const areas=await apiG('areas');const novo=!u;
+  openM(`<div class="md"><div class="mh"><div class="mt">${novo?'Novo Usuário':`Editar — ${u.nome}`}</div><button class="mc2" onclick="closeM()">×</button></div>
+  <div class="mbd">
+    <div style="text-align:center;margin-bottom:18px"><div class="ua" onclick="document.getElementById('pi').click()">
+      <div style="width:70px;height:70px;border-radius:50%;background:var(--orange-light);border:2px solid var(--orange-border);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:28px" id="pp">${u?ini(u.nome):'📷'}</div>
+      <div style="font-size:12px;font-weight:600;color:var(--gray-mid)">Clique para enviar foto</div>
+    </div><input type="file" id="pi" accept="image/*" style="display:none" onchange="prvFoto(event)"/></div>
+    <div class="fr">
+      <div class="fg"><label class="flb">Nome completo *</label><input class="fi" id="un" value="${esc(u?.nome||'')}" placeholder="Nome e sobrenome"/></div>
+      <div class="fg"><label class="flb">Área *</label><select class="fsl" id="ua"><option value="">— Selecione —</option>${areas.filter(a=>a.ativo!=='não').map(a=>`<option value="${esc(a.nome)}"${u?.area===a.nome?' selected':''}>${a.nome}</option>`).join('')}</select></div>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="bsu" onclick="svUser('${u?.id||''}','${esc(u?.criado_em||'')}')">💾 Salvar</button>
+    <div class="fg"><label class="flb">E-mail *</label><input class="fi" id="ue" type="email" value="${esc(u?.email||'')}" placeholder="email@empresa.com"/></div>
+    <div class="fr">
+      <div class="fg"><label class="flb">${novo?'Senha *':'Nova Senha (em branco = manter)'}</label><input class="fi" id="us" type="password" placeholder="••••••••"/></div>
+      <div class="fg"><label class="flb">Confirmar Senha</label><input class="fi" id="us2" type="password" placeholder="••••••••"/></div>
     </div>
-  </div>`);
+    <div class="fg"><label class="flb">Tipo *</label><select class="fsl" id="ut">
+      <option value="ADM"${u?.tipo==='ADM'?' selected':''}>ADM — Administrador</option>
+      <option value="CEO"${u?.tipo==='CEO'?' selected':''}>CEO — Visão estratégica</option>
+      <option value="GESTOR"${u?.tipo==='GESTOR'?' selected':''}>Gestor de Área</option>
+    </select></div>
+  </div>
+  <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bsu" onclick="svUser('${u?.id||''}','${esc(u?.criado_em||'')}')">💾 Salvar</button></div></div>`);
 }
 function prvFoto(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{document.getElementById('pp').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`};r.readAsDataURL(f)}
 async function svUser(id,ce){
   const btn=document.getElementById('bsu');
-  const n=document.getElementById('un').value.trim();
-  const e=document.getElementById('ue').value.trim();
-  const area=document.getElementById('ua').value;
-  const s=document.getElementById('us').value;
-  const s2=document.getElementById('us2').value;
-  if(!n){toast('Informe o nome completo','err');return}
+  const n=document.getElementById('un').value.trim(),e=document.getElementById('ue').value.trim();
+  const area=document.getElementById('ua').value,s=document.getElementById('us').value,s2=document.getElementById('us2').value;
+  if(!n){toast('Informe o nome','err');return}
   if(!e){toast('Informe o e-mail','err');return}
   if(!area){toast('Selecione a área','err');return}
-  if(!id&&!s){toast('Informe a senha para o novo usuário','err');return}
-  if(s&&s!==s2){toast('As senhas não conferem!','err');return}
+  if(!id&&!s){toast('Informe a senha','err');return}
+  if(s&&s!==s2){toast('Senhas não conferem!','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const body={nome:n,area,email:e,senha:s||'',tipo:document.getElementById('ut').value,foto:''};
   const r=!id?await apiP('usuarios',body):await apiU('usuarios',{...body,id,ativo:'sim',criado_em:ce});
-  if(r.ok){toast('Usuário salvo! ✅');closeM();lUsers();}
-  else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('Usuário salvo! ✅');closeM();lUsers();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 // ════════════════════════════════
@@ -502,57 +497,45 @@ async function pCOkr(){
   await lCOkr();
 }
 async function lCOkr(){
-  const[okrs,krs]=await Promise.all([apiG('okr_companhia'),apiG('key_results')]);
+  const[okrs,aokrs]=await Promise.all([apiG('okr_companhia'),apiG('okr_area')]);
   const el=document.getElementById('col');if(!el)return;
   if(!okrs.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)">Nenhum OKR cadastrado ainda.</div>';return}
   el.innerHTML=okrs.map(o=>`<div class="oi">
-    <div class="oh" onclick="tog('${o.id}')">
-      <span class="chv" id="cv-${o.id}">▶</span>
+    <div class="oh" onclick="tog('${o.id}')"><span class="chv" id="cv-${o.id}">▶</span>
       <div style="flex:1;min-width:0"><div class="on">${o.nome}</div>
         <div class="om"><span>👤 ${o.responsavel||'—'}</span><span>📅 ${o.data_inicio||'—'} → ${o.data_fim||'—'}</span>${bdg(o.status||'Pendente')}${hbdg(o.saude||'green')}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;min-width:200px">${pb(o.progresso)}<span style="font-size:13px;font-weight:800;min-width:36px;text-align:right">${o.progresso||0}%</span></div>
     </div>
     <div class="oc" id="oc-${o.id}">
-      <div style="font-size:10px;font-weight:700;color:var(--gray-mid);text-transform:uppercase;margin-bottom:8px">Key Results</div>
-      ${krs.filter(k=>k.okr_id==o.id).map(k=>`<div class="kr">
-        <span class="bdg ${k.tipo==='KPI'?'bb':'bor'}">${k.tipo}</span>
-        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${k.nome}</div>
-          ${k.tipo==='KPI'?`<div style="font-size:11px;color:var(--gray-mid)">${k.unidade} ${parseInt(k.atual||0).toLocaleString('pt-BR')} / Meta: ${parseInt(k.meta||0).toLocaleString('pt-BR')}</div>`:''}
+      <div style="font-size:10px;font-weight:700;color:var(--gray-mid);text-transform:uppercase;margin-bottom:8px">OKRs de Área vinculados</div>
+      ${aokrs.filter(a=>a.okr_companhia_id==o.id).map(a=>`<div class="kr">
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${a.nome}</div>
+          <div style="font-size:11px;color:var(--gray-mid)">${a.area} · 👤 ${a.responsavel||'—'}</div>
         </div>
-        <div style="min-width:150px">${pb(k.progresso)}<div style="text-align:right;font-size:11px;font-weight:700;margin-top:2px">${k.progresso||0}%</div></div>
-        ${hbdg(k.saude||'green')}
-      </div>`).join('')||'<div style="font-size:12px;color:var(--gray-mid);padding:8px">Nenhum KR vinculado.</div>'}
+        <div style="min-width:150px">${pb(a.progresso)}<div style="text-align:right;font-size:11px;font-weight:700;margin-top:2px">${a.progresso||0}%</div></div>
+        ${hbdg(a.saude||'green')}
+      </div>`).join('')||'<div style="font-size:12px;color:var(--gray-mid);padding:8px">Nenhum OKR de Área vinculado.</div>'}
     </div>
   </div>`).join('');
 }
 function tog(id){const c=document.getElementById(`oc-${id}`),v=document.getElementById(`cv-${id}`);const o=c.classList.contains('open');c.classList.toggle('open',!o);v.classList.toggle('open',!o);v.textContent=o?'▶':'▼'}
 function mNovoCOkr(){
-  openM(`<div class="md">
-    <div class="mh"><div class="mt">Novo OKR Companhia</div><button class="mc2" onclick="closeM()">×</button></div>
-    <div class="mbd">
-      <div class="fg"><label class="flb">Nome do Objetivo *</label><input class="fi" id="mn" placeholder="Ex: Crescer receita 40% no ano"/></div>
-      <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="md2" placeholder="Descreva o objetivo..."></textarea></div>
-      <div class="fr">
-        <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2" placeholder="Nome"/></div>
-        <div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div>
-      </div>
-      <div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div>
-    </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="bsc2" onclick="svCOkr()">💾 Salvar</button>
-    </div>
-  </div>`);
+  openM(`<div class="md"><div class="mh"><div class="mt">Novo OKR Companhia</div><button class="mc2" onclick="closeM()">×</button></div>
+  <div class="mbd">
+    <div class="fg"><label class="flb">Nome do Objetivo *</label><input class="fi" id="mn" placeholder="Ex: Faturar R$100M em 2026"/></div>
+    <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="md2" placeholder="Descreva o objetivo..."></textarea></div>
+    <div class="fr"><div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2" placeholder="Nome"/></div><div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div></div>
+    <div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div>
+  </div>
+  <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bsc2" onclick="svCOkr()">💾 Salvar</button></div></div>`);
 }
 async function svCOkr(){
-  const btn=document.getElementById('bsc2');
-  const n=document.getElementById('mn').value.trim();
-  if(!n){toast('Informe o nome do objetivo','err');return}
+  const btn=document.getElementById('bsc2');const n=document.getElementById('mn').value.trim();
+  if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiP('okr_companhia',{nome:n,descricao:document.getElementById('md2').value,responsavel:document.getElementById('mr2').value,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value});
-  if(r.ok){toast('OKR criado! ✅');closeM();lCOkr();}
-  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('OKR criado! ✅');closeM();lCOkr();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 // ════════════════════════════════
@@ -570,88 +553,67 @@ async function lAOkr(){
   const el=document.getElementById('aol');if(!el)return;
   if(!ao.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)">Nenhum OKR de área cadastrado.</div>';return}
   const areas=[...new Set(ao.map(o=>o.area).filter(Boolean))];
-  el.innerHTML=areas.map(area=>`
-  <div style="margin-bottom:22px">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <div style="width:4px;height:18px;background:var(--orange);border-radius:2px"></div>
-      <div style="font-size:14px;font-weight:800">${area}</div>
-    </div>
-    ${ao.filter(o=>o.area===area).map(o=>`<div class="oi" style="margin-bottom:8px">
-      <div class="oh" style="cursor:default">
-        <div style="flex:1;min-width:0"><div class="on">${o.nome}</div>
-          <div class="om"><span>👤 ${o.responsavel||'—'}</span><span style="color:var(--blue);font-size:11px">→ ${co.find(c=>c.id==o.okr_companhia_id)?.nome||'—'}</span>${bdg(o.status||'Pendente')}${hbdg(o.saude||'green')}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;min-width:200px">${pb(o.progresso)}<span style="font-size:13px;font-weight:800;min-width:36px;text-align:right">${o.progresso||0}%</span></div>
+  el.innerHTML=areas.map(area=>`<div style="margin-bottom:22px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="width:4px;height:18px;background:var(--orange);border-radius:2px"></div><div style="font-size:14px;font-weight:800">${area}</div></div>
+    ${ao.filter(o=>o.area===area).map(o=>`<div class="oi" style="margin-bottom:8px"><div class="oh" style="cursor:default">
+      <div style="flex:1;min-width:0"><div class="on">${o.nome}</div>
+        <div class="om"><span>👤 ${o.responsavel||'—'}</span><span style="color:var(--blue);font-size:11px">→ ${co.find(c=>c.id==o.okr_companhia_id)?.nome||'—'}</span>${bdg(o.status||'Pendente')}${hbdg(o.saude||'green')}</div>
       </div>
-    </div>`).join('')}
+      <div style="display:flex;align-items:center;gap:10px;min-width:200px">${pb(o.progresso)}<span style="font-size:13px;font-weight:800;min-width:36px;text-align:right">${o.progresso||0}%</span></div>
+    </div></div>`).join('')}
   </div>`).join('');
 }
 async function mNovoAOkr(){
   const[co,areas]=await Promise.all([apiG('okr_companhia'),apiG('areas')]);
-  openM(`<div class="md">
-    <div class="mh"><div class="mt">Novo OKR Área</div><button class="mc2" onclick="closeM()">×</button></div>
-    <div class="mbd">
-      <div class="fg"><label class="flb">OKR Companhia *</label>
-        <select class="fsl" id="mc3"><option value="">— Selecione —</option>${co.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
-      </div>
-      <div class="fg"><label class="flb">Nome *</label><input class="fi" id="mn" placeholder="Objetivo da área"/></div>
-      <div class="fr">
-        <div class="fg"><label class="flb">Área *</label>
-          <select class="fsl" id="ma"><option value="">— Selecione —</option>${areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')}</select>
-        </div>
-        <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2"/></div>
-      </div>
-      <div class="fr">
-        <div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div>
-        <div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div>
-      </div>
+  openM(`<div class="md"><div class="mh"><div class="mt">Novo OKR Área</div><button class="mc2" onclick="closeM()">×</button></div>
+  <div class="mbd">
+    <div class="fg"><label class="flb">OKR Companhia *</label><select class="fsl" id="mc3"><option value="">— Selecione —</option>${co.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flb">Nome *</label><input class="fi" id="mn" placeholder="Objetivo da área"/></div>
+    <div class="fr">
+      <div class="fg"><label class="flb">Área *</label><select class="fsl" id="ma"><option value="">— Selecione —</option>${areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')}</select></div>
+      <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2"/></div>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="bsao" onclick="svAOkr()">💾 Salvar</button>
-    </div>
-  </div>`);
+    <div class="fr"><div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div><div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div></div>
+  </div>
+  <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bsao" onclick="svAOkr()">💾 Salvar</button></div></div>`);
 }
 async function svAOkr(){
-  const btn=document.getElementById('bsao');
-  const n=document.getElementById('mn').value.trim();
+  const btn=document.getElementById('bsao');const n=document.getElementById('mn').value.trim();
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiP('okr_area',{okr_companhia_id:document.getElementById('mc3').value,nome:n,area:document.getElementById('ma').value,responsavel:document.getElementById('mr2').value,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value});
-  if(r.ok){toast('OKR Área criado! ✅');closeM();lAOkr();}
-  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('OKR Área criado! ✅');closeM();lAOkr();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 // ════════════════════════════════
-// KEY RESULTS
+// KEY RESULTS — vincula ao OKR ÁREA
 // ════════════════════════════════
 let _krc=[];
 async function pKR(){
   document.getElementById('main').innerHTML=`
-  <div class="ph"><div><div class="pt">Key Results</div><div class="ps">KPIs e projetos estratégicos</div></div>
+  <div class="ph"><div><div class="pt">Key Results</div><div class="ps">KPIs e projetos estratégicos vinculados aos OKRs de Área</div></div>
   <button class="btn bp" onclick="mNovoKR()">+ Novo KR</button></div>
   <div class="cnt">
-    <div class="tabs">
-      <div class="tab active" onclick="fKR('todos',this)">Todos</div>
-      <div class="tab" onclick="fKR('KPI',this)">KPI</div>
-      <div class="tab" onclick="fKR('Projeto',this)">Projeto</div>
-    </div>
+    <div class="tabs"><div class="tab active" onclick="fKR('todos',this)">Todos</div><div class="tab" onclick="fKR('KPI',this)">KPI</div><div class="tab" onclick="fKR('Projeto',this)">Projeto</div></div>
     <div class="card"><div id="krl">${ld()}</div></div>
   </div>`;
   _krc=[];await lKR('todos');
 }
 async function lKR(f){
-  if(!_krc.length){const[krs,ok]=await Promise.all([apiG('key_results'),apiG('okr_companhia')]);_krc=krs.map(k=>({...k,_on:ok.find(o=>o.id==k.okr_id)?.nome||'—'}))}
+  if(!_krc.length){
+    const[krs,aokrs]=await Promise.all([apiG('key_results'),apiG('okr_area')]);
+    _krc=krs.map(k=>({...k,_on:aokrs.find(o=>o.id==k.okr_area_id)?.nome||'—',_area:aokrs.find(o=>o.id==k.okr_area_id)?.area||'—'}));
+  }
   const list=f==='todos'?_krc:_krc.filter(k=>k.tipo===f);
   const el=document.getElementById('krl');if(!el)return;
   if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-mid)">Nenhum KR encontrado.</div>';return}
   el.innerHTML=`<div style="overflow-x:auto"><table>
-    <thead><tr><th>Tipo</th><th>Nome</th><th>Objetivo</th><th>Indicador</th><th>Progresso</th><th>Saúde</th><th>Ação</th></tr></thead>
+    <thead><tr><th>Tipo</th><th>Nome</th><th>OKR Área</th><th>Indicador</th><th>Progresso</th><th>Saúde</th><th>Ação</th></tr></thead>
     <tbody>${list.map(k=>`<tr>
       <td><span class="bdg ${k.tipo==='KPI'?'bb':'bor'}">${k.tipo}</span></td>
-      <td><div style="font-size:13px;font-weight:600">${k.nome}</div><div style="font-size:11px;color:var(--gray-mid)">👤 ${k.responsavel||'—'}</div></td>
+      <td><div style="font-size:13px;font-weight:600">${k.nome}</div><div style="font-size:11px;color:var(--gray-mid)">👤 ${k.responsavel||'—'} · ${k._area}</div></td>
       <td style="font-size:12px;color:var(--gray-mid)">${k._on}</td>
-      <td style="font-size:12px">${k.tipo==='KPI'?`${k.indicador} · ${k.unidade} ${parseInt(k.atual||0).toLocaleString('pt-BR')}/${parseInt(k.meta||0).toLocaleString('pt-BR')}`:'Projeto'}</td>
+      <td style="font-size:12px">${k.tipo==='KPI'?`${k.indicador} · ${k.unidade} ${parseFloat(k.atual||0).toLocaleString('pt-BR')}/${parseFloat(k.meta||0).toLocaleString('pt-BR')}`:'Projeto'}</td>
       <td style="min-width:120px">${pb(k.progresso)}<div style="text-align:right;font-size:11px;font-weight:700;margin-top:2px">${k.progresso||0}%</div></td>
       <td>${hbdg(k.saude||'green')}</td>
       <td><button class="btn bg bsm" onclick='mUpdKR(${JSON.stringify(k).replace(/"/g,"&quot;")})'>✏ Atualizar</button></td>
@@ -660,75 +622,48 @@ async function lKR(f){
 }
 function fKR(f,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');_krc=[];lKR(f)}
 async function mNovoKR(){
-  const ok=await apiG('okr_companhia');
-  openM(`<div class="md">
-    <div class="mh"><div class="mt">Novo Key Result</div><button class="mc2" onclick="closeM()">×</button></div>
-    <div class="mbd">
-      <div class="fg"><label class="flb">Objetivo *</label>
-        <select class="fsl" id="mo"><option value="">— Selecione —</option>${ok.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
-      </div>
-      <div class="fg"><label class="flb">Nome do KR *</label><input class="fi" id="mn"/></div>
-      <div class="fr">
-        <div class="fg"><label class="flb">Tipo *</label>
-          <select class="fsl" id="mtp" onchange="document.getElementById('kpf').style.display=this.value==='KPI'?'block':'none'">
-            <option value="KPI">KPI</option><option value="Projeto">Projeto</option>
-          </select>
-        </div>
-        <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2"/></div>
-      </div>
-      <div id="kpf">
-        <div class="fr">
-          <div class="fg"><label class="flb">Tipo Indicador</label><select class="fsl" id="mind"><option>crescente</option><option>decrescente</option></select></div>
-          <div class="fg"><label class="flb">Unidade</label><input class="fi" id="mun" placeholder="R$, %, pts..."/></div>
-        </div>
-        <div class="fr">
-          <div class="fg"><label class="flb">Valor Atual</label><input class="fi" id="mat" type="number" value="0"/></div>
-          <div class="fg"><label class="flb">Meta</label><input class="fi" id="mme" type="number" value="0"/></div>
-        </div>
-      </div>
-      <div class="fr">
-        <div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div>
-        <div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div>
-      </div>
+  const aokrs=await apiG('okr_area');
+  openM(`<div class="md"><div class="mh"><div class="mt">Novo Key Result</div><button class="mc2" onclick="closeM()">×</button></div>
+  <div class="mbd">
+    <div class="fg"><label class="flb">OKR de Área *</label><select class="fsl" id="moa"><option value="">— Selecione —</option>${aokrs.map(o=>`<option value="${o.id}">[${o.area}] ${o.nome}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flb">Nome do KR *</label><input class="fi" id="mn" placeholder="Ex: Receita Mensal Recorrente"/></div>
+    <div class="fr">
+      <div class="fg"><label class="flb">Tipo *</label><select class="fsl" id="mtp" onchange="document.getElementById('kpf').style.display=this.value==='KPI'?'block':'none'"><option value="KPI">KPI</option><option value="Projeto">Projeto</option></select></div>
+      <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2"/></div>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="bskr" onclick="svKR()">💾 Salvar</button>
+    <div id="kpf">
+      <div class="fr">
+        <div class="fg"><label class="flb">Tipo Indicador</label><select class="fsl" id="mind"><option>crescente</option><option>decrescente</option></select></div>
+        <div class="fg"><label class="flb">Unidade</label><input class="fi" id="mun" placeholder="R$, %, pts..."/></div>
+      </div>
+      <div class="fr"><div class="fg"><label class="flb">Valor Atual</label><input class="fi" id="mat" type="number" value="0"/></div><div class="fg"><label class="flb">Meta</label><input class="fi" id="mme" type="number" value="0"/></div></div>
     </div>
-  </div>`);
+    <div class="fr"><div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div><div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div></div>
+  </div>
+  <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bskr" onclick="svKR()">💾 Salvar</button></div></div>`);
 }
 async function svKR(){
-  const btn=document.getElementById('bskr');
-  const n=document.getElementById('mn').value.trim();
+  const btn=document.getElementById('bskr');const n=document.getElementById('mn').value.trim();
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
-  const r=await apiP('key_results',{okr_id:document.getElementById('mo').value,tipo:document.getElementById('mtp').value,nome:n,responsavel:document.getElementById('mr2').value,indicador:document.getElementById('mind')?.value||'crescente',unidade:document.getElementById('mun')?.value||'',atual:document.getElementById('mat')?.value||0,meta:document.getElementById('mme')?.value||0,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value});
-  if(r.ok){toast('KR criado! ✅');closeM();_krc=[];lKR('todos');}
-  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  const r=await apiP('key_results',{okr_area_id:document.getElementById('moa').value,tipo:document.getElementById('mtp').value,nome:n,responsavel:document.getElementById('mr2').value,indicador:document.getElementById('mind')?.value||'crescente',unidade:document.getElementById('mun')?.value||'',atual:document.getElementById('mat')?.value||0,meta:document.getElementById('mme')?.value||0,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value});
+  if(r.ok){toast('KR criado! ✅');closeM();_krc=[];lKR('todos');}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 function mUpdKR(k){
-  openM(`<div class="md">
-    <div class="mh"><div class="mt">✏️ Atualizar KR</div><button class="mc2" onclick="closeM()">×</button></div>
-    <div class="mbd">
-      <div style="background:var(--blue-light);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--blue)">📊 <strong>${k.nome}</strong>${k.tipo==='KPI'?` · Meta: ${k.unidade} ${parseInt(k.meta||0).toLocaleString('pt-BR')}`:''}
-      </div>
-      ${k.tipo==='KPI'?`<div class="fr"><div class="fg"><label class="flb">Valor Atual</label><input class="fi" id="mat" type="number" value="${k.atual||0}"/></div><div class="fg"><label class="flb">Meta</label><input class="fi" id="mme" type="number" value="${k.meta||0}"/></div></div>`:''}
-      <div class="fg"><label class="flb">Saúde</label>
-        <select class="fsl" id="ms"><option value="green"${k.saude==='green'?' selected':''}>✅ No prazo</option><option value="yellow"${k.saude==='yellow'?' selected':''}>⚠️ Atenção</option><option value="red"${k.saude==='red'?' selected':''}>🔴 Em risco</option></select>
-      </div>
-      <div class="fg"><label class="flb">Comentário</label><textarea class="fta" id="mcom" placeholder="Descreva o andamento..."></textarea></div>
+  openM(`<div class="md"><div class="mh"><div class="mt">✏️ Atualizar KR</div><button class="mc2" onclick="closeM()">×</button></div>
+  <div class="mbd">
+    <div style="background:var(--blue-light);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--blue)">📊 <strong>${k.nome}</strong>${k.tipo==='KPI'?` · Meta: ${k.unidade} ${parseFloat(k.meta||0).toLocaleString('pt-BR')}`:''}
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="bskru" onclick='svUpdKR(${JSON.stringify(k).replace(/"/g,"&quot;")})'>💾 Salvar</button>
-    </div>
-  </div>`);
+    ${k.tipo==='KPI'?`<div class="fr"><div class="fg"><label class="flb">Valor Atual</label><input class="fi" id="mat" type="number" value="${k.atual||0}"/></div><div class="fg"><label class="flb">Meta</label><input class="fi" id="mme" type="number" value="${k.meta||0}"/></div></div>`:''}
+    <div class="fg"><label class="flb">Saúde</label><select class="fsl" id="ms"><option value="green"${k.saude==='green'?' selected':''}>✅ No prazo</option><option value="yellow"${k.saude==='yellow'?' selected':''}>⚠️ Atenção</option><option value="red"${k.saude==='red'?' selected':''}>🔴 Em risco</option></select></div>
+    <div class="fg"><label class="flb">Comentário</label><textarea class="fta" id="mcom" placeholder="Descreva o andamento..."></textarea></div>
+  </div>
+  <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bskru" onclick='svUpdKR(${JSON.stringify(k).replace(/"/g,"&quot;")})'>💾 Salvar</button></div></div>`);
 }
 async function svUpdKR(k){
   const btn=document.getElementById('bskru');btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiU('key_results',{...k,atual:document.getElementById('mat')?.value||k.atual,meta:document.getElementById('mme')?.value||k.meta,saude:document.getElementById('ms').value});
-  if(r.ok){toast('KR atualizado! ✅');closeM();_krc=[];lKR('todos');}
-  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('KR atualizado! ✅');closeM();_krc=[];lKR('todos');}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 // ════════════════════════════════
@@ -750,21 +685,20 @@ async function lInit(){
     const mine=inits.filter(i=>i.kr_id==kr.id);
     const act=mine.filter(i=>i.status!=='Cancelada');
     const w=act.length?Math.round(100/act.length):0;
-    const pct=act.length?Math.round(act.reduce((s,i)=>s+({'Concluída':1,'Concluída com atraso':1,'Em andamento':.5,'Não iniciada':0}[i.status]||0),0)/act.length*100):0;
+    const pct=act.length?Math.round(act.reduce((s,i)=>s+({'Concluída':1,'Concluída com atraso':1,'Em andamento':.5,'Não iniciada':0,'Pausada':0,'Cancelada':0}[i.status]||0),0)/act.length*100):0;
     return`<div class="card" style="margin-bottom:16px">
       <div class="ch"><div><div class="ct">🎯 ${kr.nome}</div><div style="font-size:11px;color:var(--gray-mid);margin-top:2px">${act.length} ativas · peso: ${w}% cada</div></div>
         <div style="display:flex;align-items:center;gap:12px"><div style="min-width:160px">${pb(pct)}<div style="text-align:right;font-size:11px;font-weight:700;margin-top:2px">${pct}%</div></div>${hbdg(kr.saude||'green')}</div>
       </div>
       <div class="cb" style="padding:0"><table>
-        <thead><tr><th>Iniciativa</th><th>Responsável</th><th>Prazo</th><th>Status</th><th>Progresso</th><th>Ação</th></tr></thead>
+        <thead><tr><th>Iniciativa</th><th>Responsável</th><th>Prazo</th><th>Status Atual</th><th>Ação</th></tr></thead>
         <tbody>${mine.length?mine.map(i=>`<tr>
           <td style="font-weight:600">${i.nome}</td>
           <td style="font-size:12px;color:var(--gray-mid)">${i.responsavel||'—'}</td>
           <td style="font-size:12px;color:var(--gray-mid)">${i.data_fim||'—'}</td>
           <td>${bdg(i.status||'Não iniciada')}</td>
-          <td style="min-width:90px">${pb(i.pct||0)}</td>
           <td><button class="btn bg bsm" onclick='mUpdInit(${JSON.stringify(i).replace(/"/g,"&quot;")})'>✏ Atualizar</button></td>
-        </tr>`).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--gray-mid);padding:16px">Nenhuma iniciativa ainda.</td></tr>'}
+        </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--gray-mid);padding:16px">Nenhuma iniciativa ainda.</td></tr>'}
         </tbody>
       </table></div>
     </div>`;
@@ -772,103 +706,109 @@ async function lInit(){
 }
 async function mNovaInit(){
   const krs=(await apiG('key_results')).filter(k=>k.tipo==='Projeto');
-  openM(`<div class="md">
-    <div class="mh"><div class="mt">Nova Iniciativa</div><button class="mc2" onclick="closeM()">×</button></div>
-    <div class="mbd">
-      <div class="fg"><label class="flb">KR Projeto *</label>
-        <select class="fsl" id="mk"><option value="">— Selecione —</option>${krs.map(k=>`<option value="${k.id}">${k.nome}</option>`).join('')}</select>
-      </div>
-      <div class="fg"><label class="flb">Nome *</label><input class="fi" id="mn" placeholder="Nome da iniciativa"/></div>
-      <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="md2" placeholder="Descreva a iniciativa..."></textarea></div>
-      <div class="fr">
-        <div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div>
-        <div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div>
-      </div>
-      <div class="fr">
-        <div class="fg"><label class="flb">Status</label><select class="fsl" id="mst"><option>Não iniciada</option><option>Em andamento</option></select></div>
-        <div class="fg"><label class="flb">Comentário</label><input class="fi" id="mcom" placeholder="Observações..."/></div>
-      </div>
+  openM(`<div class="md"><div class="mh"><div class="mt">Nova Iniciativa</div><button class="mc2" onclick="closeM()">×</button></div>
+  <div class="mbd">
+    <div class="fg"><label class="flb">KR Projeto *</label><select class="fsl" id="mk"><option value="">— Selecione —</option>${krs.map(k=>`<option value="${k.id}">${k.nome}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flb">Nome *</label><input class="fi" id="mn" placeholder="Nome da iniciativa"/></div>
+    <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="md2" placeholder="Descreva a iniciativa..."></textarea></div>
+    <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mresp" placeholder="Nome do responsável"/></div>
+    <div class="fr"><div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div><div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div></div>
+    <div class="fr">
+      <div class="fg"><label class="flb">Status inicial</label><select class="fsl" id="mst">${STATUS_INIT.map(s=>`<option>${s}</option>`).join('')}</select></div>
+      <div class="fg"><label class="flb">Comentário</label><input class="fi" id="mcom" placeholder="Observações..."/></div>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="bsin" onclick="svInit()">💾 Salvar</button>
-    </div>
-  </div>`);
+  </div>
+  <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bsin" onclick="svInit()">💾 Salvar</button></div></div>`);
 }
 async function svInit(){
-  const btn=document.getElementById('bsin');
-  const n=document.getElementById('mn').value.trim();
+  const btn=document.getElementById('bsin');const n=document.getElementById('mn').value.trim();
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
-  const r=await apiP('iniciativas',{kr_id:document.getElementById('mk').value,nome:n,descricao:document.getElementById('md2').value,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value,status:document.getElementById('mst').value,comentario:document.getElementById('mcom').value});
-  if(r.ok){toast('Iniciativa criada! ✅');closeM();lInit();}
-  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  const r=await apiP('iniciativas',{kr_id:document.getElementById('mk').value,nome:n,descricao:document.getElementById('md2').value,responsavel:document.getElementById('mresp').value,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value,status:document.getElementById('mst').value,comentario:document.getElementById('mcom').value});
+  if(r.ok){toast('Iniciativa criada! ✅');closeM();lInit();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 function mUpdInit(i){
-  openM(`<div class="md">
-    <div class="mh"><div class="mt">✏️ Atualizar Iniciativa</div><button class="mc2" onclick="closeM()">×</button></div>
-    <div class="mbd">
-      <div style="background:var(--orange-light);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#92400e">
-        📋 <strong>${i.nome}</strong> · Prazo: ${i.data_fim||'—'}
-      </div>
-      <div class="fg"><label class="flb">Novo Status</label>
-        <select class="fsl" id="mst">${['Não iniciada','Em andamento','Concluída','Concluída com atraso','Cancelada'].map(s=>`<option${i.status===s?' selected':''}>${s}</option>`).join('')}</select>
-      </div>
-      <div class="fg"><label class="flb">Comentário do mês</label>
-        <textarea class="fta" id="mcom" placeholder="O que aconteceu este mês?">${i.comentario||''}</textarea>
-      </div>
-    </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="bsinu" onclick='svUpdInit(${JSON.stringify(i).replace(/"/g,"&quot;")})'>💾 Salvar</button>
-    </div>
-  </div>`);
+  openM(`<div class="md"><div class="mh"><div class="mt">✏️ Atualizar Iniciativa</div><button class="mc2" onclick="closeM()">×</button></div>
+  <div class="mbd">
+    <div style="background:var(--orange-light);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#92400e">📋 <strong>${i.nome}</strong> · Prazo: ${i.data_fim||'—'}</div>
+    <div class="fg"><label class="flb">Novo Status</label><select class="fsl" id="mst">${STATUS_INIT.map(s=>`<option${i.status===s?' selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flb">Comentário</label><textarea class="fta" id="mcom" placeholder="O que aconteceu?">${i.comentario||''}</textarea></div>
+  </div>
+  <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bsinu" onclick='svUpdInit(${JSON.stringify(i).replace(/"/g,"&quot;")})'>💾 Salvar</button></div></div>`);
 }
 async function svUpdInit(i){
   const btn=document.getElementById('bsinu');btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiU('iniciativas',{...i,status:document.getElementById('mst').value,comentario:document.getElementById('mcom').value});
-  if(r.ok){toast('Iniciativa atualizada! ✅');closeM();lInit();}
-  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('Iniciativa atualizada! ✅');closeM();lInit();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 // ════════════════════════════════
-// MANUTENÇÃO
+// MANUTENÇÃO — com snapshots mensais
 // ════════════════════════════════
 async function pMaint(){
   const areas=await apiG('areas');
+  const now=new Date();
   document.getElementById('main').innerHTML=`
-  <div class="ph"><div><div class="pt">Atualizar Status</div><div class="ps">Informe o desempenho do mês</div></div></div>
+  <div class="ph"><div><div class="pt">Atualizar Status</div><div class="ps">Informe o desempenho — os dados são gravados por mês de referência</div></div></div>
   <div class="cnt">
-    <div class="fb">
-      <span class="fl">🏬 Área:</span>
-      <select class="fs" id="mfa" onchange="lMaint()">
-        <option value="">Todas</option>
-        ${areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')}
-      </select>
+    <div class="snap-box" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div><div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">📅 Mês de Referência</div>
+        <div style="display:flex;gap:8px">
+          <select class="fsl" id="mfm" style="width:auto">${mesOpts(now.getMonth()+1)}</select>
+          <select class="fsl" id="mfa2" style="width:auto">${anoOpts()}</select>
+        </div>
+      </div>
       <div class="fd"></div>
-      <span class="fl">📅 Mês:</span>
-      <select class="fs" id="mfm">${MOS.map((m,i)=>`<option value="${i+1}"${i===new Date().getMonth()?' selected':''}>${m} 2025</option>`).join('')}</select>
+      <div><div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🏬 Área</div>
+        <select class="fsl" id="mfar" style="width:auto" onchange="lMaint()">
+          <option value="">Todas</option>
+          ${areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')}
+        </select>
+      </div>
+      <button class="btn bp bsm" style="margin-top:18px" onclick="lMaint()">🔍 Carregar</button>
     </div>
     <div id="mc4">${ld()}</div>
   </div>`;
   await lMaint();
 }
+
 async function lMaint(){
-  const area=document.getElementById('mfa')?.value||'';
-  const[krs,inits]=await Promise.all([apiG('key_results'),apiG('iniciativas')]);
-  const kpis=krs.filter(k=>k.tipo==='KPI');
-  const proj=krs.filter(k=>k.tipo==='Projeto');
-  const ai=proj.flatMap(kr=>inits.filter(i=>i.kr_id==kr.id));
   const el=document.getElementById('mc4');if(!el)return;
+  el.innerHTML=ld();
+  const mes=parseInt(document.getElementById('mfm')?.value)||new Date().getMonth()+1;
+  const ano=parseInt(document.getElementById('mfa2')?.value)||new Date().getFullYear();
+  const area=document.getElementById('mfar')?.value||'';
+  const mesLabel=`${MOS[mes-1]}/${ano}`;
+
+  const[krs,inits,aokrs]=await Promise.all([apiG('key_results'),apiG('iniciativas'),apiG('okr_area')]);
+
+  // Filtra por área se selecionada
+  const kpis=krs.filter(k=>{
+    if(k.tipo!=='KPI')return false;
+    if(!area)return true;
+    const aokr=aokrs.find(o=>o.id==k.okr_area_id);
+    return aokr?.area===area;
+  });
+  const proj=krs.filter(k=>{
+    if(k.tipo!=='Projeto')return false;
+    if(!area)return true;
+    const aokr=aokrs.find(o=>o.id==k.okr_area_id);
+    return aokr?.area===area;
+  });
+  const ai=proj.flatMap(kr=>inits.filter(i=>i.kr_id==kr.id));
+
   el.innerHTML=`
-  <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--gray-dark)">📊 KRs KPI — Atualizar Valores</div>
+  <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#854d0e">
+    ⚠️ Os dados abaixo serão gravados como <strong>snapshot de ${mesLabel}</strong>. O status atual do registro não será alterado — apenas o histórico mensal é registrado.
+  </div>
+  <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--gray-dark)">📊 KRs KPI — Snapshot de ${mesLabel}</div>
   ${kpis.length?kpis.map(k=>`<div class="card" style="margin-bottom:12px">
-    <div class="ch"><div><div class="ct">${k.nome}</div><div style="font-size:11px;color:var(--gray-mid)">${k.indicador} · Meta: ${k.unidade} ${parseInt(k.meta||0).toLocaleString('pt-BR')}</div></div>${hbdg(k.saude||'green')}</div>
+    <div class="ch"><div><div class="ct">${k.nome}</div><div style="font-size:11px;color:var(--gray-mid)">${k.indicador} · Meta: ${k.unidade} ${parseFloat(k.meta||0).toLocaleString('pt-BR')} · Atual cadastrado: ${k.unidade} ${parseFloat(k.atual||0).toLocaleString('pt-BR')}</div></div>${hbdg(k.saude||'green')}</div>
     <div class="cb">
       <div class="fr3">
-        <div class="fg"><label class="flb">Valor Atual</label><input class="fi" type="number" id="kc-${k.id}" value="${k.atual||0}"/></div>
+        <div class="fg"><label class="flb">Valor em ${mesLabel}</label><input class="fi" type="number" id="kc-${k.id}" value="${k.atual||0}" placeholder="Valor do mês"/></div>
         <div class="fg"><label class="flb">Meta</label><input class="fi" type="number" id="km-${k.id}" value="${k.meta||0}"/></div>
-        <div class="fg"><label class="flb">Saúde</label>
+        <div class="fg"><label class="flb">Saúde em ${mesLabel}</label>
           <select class="fsl" id="ks-${k.id}">
             <option value="green"${k.saude==='green'?' selected':''}>✅ No prazo</option>
             <option value="yellow"${k.saude==='yellow'?' selected':''}>⚠️ Atenção</option>
@@ -876,30 +816,41 @@ async function lMaint(){
           </select>
         </div>
       </div>
-      <div style="text-align:right"><button class="btn bp bsm" onclick='sMKPI(${JSON.stringify(k).replace(/"/g,"&quot;")})'>💾 Salvar</button></div>
+      <div class="fg"><label class="flb">Comentário</label><input class="fi" id="kcom-${k.id}" placeholder="Observações do mês..."/></div>
+      <div style="text-align:right"><button class="btn bp bsm" onclick='sMKPI(${JSON.stringify(k).replace(/"/g,"&quot;")},${mes},${ano})'>💾 Gravar snapshot</button></div>
     </div>
-  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid);margin-bottom:16px">Nenhum KR KPI cadastrado.</div>'}
-  <div style="font-size:13px;font-weight:700;margin:16px 0 12px;color:var(--gray-dark)">🎯 Iniciativas — Atualizar Status</div>
+  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid);margin-bottom:16px">Nenhum KR KPI para esta área.</div>'}
+
+  <div style="font-size:13px;font-weight:700;margin:16px 0 12px;color:var(--gray-dark)">🎯 Iniciativas — Snapshot de ${mesLabel}</div>
   ${ai.length?ai.map(i=>`<div class="card" style="margin-bottom:10px">
-    <div class="ch"><div><div class="ct">${i.nome}</div><div style="font-size:11px;color:var(--gray-mid)">Prazo: ${i.data_fim||'—'}</div></div>${bdg(i.status||'Não iniciada')}</div>
+    <div class="ch"><div><div class="ct">${i.nome}</div><div style="font-size:11px;color:var(--gray-mid)">Prazo: ${i.data_fim||'—'} · Status atual: ${i.status||'Não iniciada'}</div></div>${bdg(i.status||'Não iniciada')}</div>
     <div class="cb">
       <div class="fr">
-        <div class="fg"><label class="flb">Novo Status</label>
-          <select class="fsl" id="is-${i.id}">${['Não iniciada','Em andamento','Concluída','Concluída com atraso','Cancelada'].map(s=>`<option${i.status===s?' selected':''}>${s}</option>`).join('')}</select>
+        <div class="fg"><label class="flb">Status em ${mesLabel}</label>
+          <select class="fsl" id="is-${i.id}">${STATUS_INIT.map(s=>`<option${i.status===s?' selected':''}>${s}</option>`).join('')}</select>
         </div>
-        <div class="fg"><label class="flb">Comentário</label><input class="fi" id="ic-${i.id}" value="${esc(i.comentario||'')}"/></div>
+        <div class="fg"><label class="flb">Comentário</label><input class="fi" id="ic-${i.id}" value="${esc(i.comentario||'')}" placeholder="O que aconteceu em ${mesLabel}?"/></div>
       </div>
-      <div style="text-align:right"><button class="btn bp bsm" onclick='sMInit(${JSON.stringify(i).replace(/"/g,"&quot;")})'>💾 Salvar</button></div>
+      <div style="text-align:right"><button class="btn bp bsm" onclick='sMInit(${JSON.stringify(i).replace(/"/g,"&quot;")},${mes},${ano})'>💾 Gravar snapshot</button></div>
     </div>
-  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid)">Nenhuma iniciativa cadastrada.</div>'}`;
+  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid)">Nenhuma iniciativa para esta área.</div>'}`;
 }
-async function sMKPI(k){
-  const r=await apiU('key_results',{...k,atual:document.getElementById(`kc-${k.id}`).value,meta:document.getElementById(`km-${k.id}`).value,saude:document.getElementById(`ks-${k.id}`).value});
-  if(r.ok)toast('KPI atualizado! ✅');else toast('Erro ao salvar','err');
+
+async function sMKPI(k,mes,ano){
+  const atual=parseFloat(document.getElementById(`kc-${k.id}`).value)||0;
+  const meta=parseFloat(document.getElementById(`km-${k.id}`).value)||1;
+  const saude=document.getElementById(`ks-${k.id}`).value;
+  const com=document.getElementById(`kcom-${k.id}`).value;
+  const prog=k.indicador==='crescente'?Math.min(Math.round((atual/meta)*100),100):Math.max(Math.round((1-atual/meta)*100),0);
+  const r=await apiSnap({tipo:'kr',item_id:k.id,mes,ano,valor_atual:atual,meta,saude,pct:prog,comentario:com,status:''});
+  if(r.ok)toast(`Snapshot KPI gravado para ${MOS[mes-1]}/${ano}! ✅`);else toast('Erro: '+(r.erro||''),'err');
 }
-async function sMInit(i){
-  const r=await apiU('iniciativas',{...i,status:document.getElementById(`is-${i.id}`).value,comentario:document.getElementById(`ic-${i.id}`).value});
-  if(r.ok)toast('Iniciativa atualizada! ✅');else toast('Erro ao salvar','err');
+async function sMInit(i,mes,ano){
+  const st=document.getElementById(`is-${i.id}`).value;
+  const com=document.getElementById(`ic-${i.id}`).value;
+  const pctMap={'Concluída':100,'Concluída com atraso':100,'Em andamento':50,'Não iniciada':0,'Pausada':0,'Cancelada':0};
+  const r=await apiSnap({tipo:'iniciativa',item_id:i.id,mes,ano,status:st,pct:pctMap[st]||0,comentario:com,valor_atual:'',meta:'',saude:'green'});
+  if(r.ok)toast(`Snapshot gravado para ${MOS[mes-1]}/${ano}! ✅`);else toast('Erro: '+(r.erro||''),'err');
 }
 
 // ════════════════════════════════
@@ -909,11 +860,7 @@ async function pApprov(){
   document.getElementById('main').innerHTML=`
   <div class="ph"><div><div class="pt">Aprovações</div><div class="ps">Fluxo de aprovação de OKRs e KRs</div></div></div>
   <div class="cnt">
-    <div class="tabs">
-      <div class="tab active" onclick="lApprov('Pendente',this)">Pendentes</div>
-      <div class="tab" onclick="lApprov('Aprovado',this)">Aprovados</div>
-      <div class="tab" onclick="lApprov('Reprovado',this)">Reprovados</div>
-    </div>
+    <div class="tabs"><div class="tab active" onclick="lApprov('Pendente',this)">Pendentes</div><div class="tab" onclick="lApprov('Aprovado',this)">Aprovados</div><div class="tab" onclick="lApprov('Reprovado',this)">Reprovados</div></div>
     <div id="al">${ld()}</div>
   </div>`;
   await lApprov('Pendente',null);
@@ -925,29 +872,21 @@ async function lApprov(f,el){
   document.getElementById('bc').textContent=all.filter(a=>a.status==='Pendente').length;
   const cont=document.getElementById('al');if(!cont)return;
   if(!items.length){cont.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-mid)">✅ Nenhum item nesta categoria</div>';return}
-  cont.innerHTML=items.map(a=>`
-  <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px">
+  cont.innerHTML=items.map(a=>`<div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px">
     <div style="width:38px;height:38px;border-radius:9px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${a.tipo?.includes('Key')?'📊':'🏬'}</div>
-    <div style="flex:1;min-width:0">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div><div style="font-size:13px;font-weight:700;margin-bottom:3px">${a.nome}</div>
-          <div style="font-size:11px;color:var(--gray-mid)">${a.tipo} · ${a.area} · por <strong>${a.solicitante}</strong> em ${a.data}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-          ${bdg(a.status)}
-          ${a.status==='Pendente'?`
-            <button class="btn bsc bsm" onclick='dApprov("${a.id}","Aprovado",${JSON.stringify(a).replace(/"/g,"&quot;")})'>✓ Aprovar</button>
-            <button class="btn bsd bsm" onclick='dApprov("${a.id}","Reprovado",${JSON.stringify(a).replace(/"/g,"&quot;")})'>✕ Reprovar</button>
-          `:''}
-        </div>
+    <div style="flex:1;min-width:0"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div><div style="font-size:13px;font-weight:700;margin-bottom:3px">${a.nome}</div>
+        <div style="font-size:11px;color:var(--gray-mid)">${a.tipo} · ${a.area} · por <strong>${a.solicitante}</strong> em ${a.data}</div>
       </div>
-    </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">${bdg(a.status)}
+        ${a.status==='Pendente'?`<button class="btn bsc bsm" onclick='dApprov("${a.id}","Aprovado",${JSON.stringify(a).replace(/"/g,"&quot;")})'>✓ Aprovar</button><button class="btn bsd bsm" onclick='dApprov("${a.id}","Reprovado",${JSON.stringify(a).replace(/"/g,"&quot;")})'>✕ Reprovar</button>`:''}
+      </div>
+    </div></div>
   </div>`).join('');
 }
 async function dApprov(id,dec,a){
   const r=await apiU('aprovacoes',{...a,id,status:dec,aprovado_por:'Admin'});
-  if(r.ok){toast(`${dec}! ✅`);pApprov();}
-  else toast('Erro: '+(r.erro||''),'err');
+  if(r.ok){toast(`${dec}! ✅`);pApprov();}else toast('Erro: '+(r.erro||''),'err');
 }
 
 go('dashboard');
