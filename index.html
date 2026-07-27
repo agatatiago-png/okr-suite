@@ -7,13 +7,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;color:#1a1f2e;min-height:100vh;display:flex}
-:root{
-  --orange:#e8621a;--orange-light:#fff3ec;--orange-border:#fcd7bc;
-  --blue:#1a4fa0;--blue-light:#e8f0fb;
-  --gray-dark:#2d3142;--gray-mid:#6b7280;--gray-lighter:#f7f8fa;
-  --white:#fff;--border:#e2e5eb;--border2:#d1d5de;
-  --success:#16a34a;--warning:#d97706;--danger:#dc2626;--nav-w:230px;
-}
+:root{--orange:#e8621a;--orange-light:#fff3ec;--orange-border:#fcd7bc;--blue:#1a4fa0;--blue-light:#e8f0fb;--gray-dark:#2d3142;--gray-mid:#6b7280;--gray-lighter:#f7f8fa;--white:#fff;--border:#e2e5eb;--border2:#d1d5de;--success:#16a34a;--warning:#d97706;--danger:#dc2626;--nav-w:230px}
 nav{width:var(--nav-w);min-height:100vh;background:var(--gray-dark);display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100}
 .nl{padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
 .ni{width:34px;height:34px;background:var(--orange);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff}
@@ -28,7 +22,8 @@ nav{width:var(--nav-w);min-height:100vh;background:var(--gray-dark);display:flex
 .nb{margin-top:auto;padding:14px;border-top:1px solid rgba(255,255,255,.08)}
 .nu{display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 10px;border-radius:8px}
 .nu:hover{background:rgba(255,255,255,.07)}
-.nav-av{width:34px;height:34px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.nav-av{width:34px;height:34px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0;overflow:hidden}
+.nav-av img{width:100%;height:100%;object-fit:cover}
 .nav-un{font-size:12px;font-weight:600;color:#fff}
 .nav-ur{font-size:10px;color:rgba(255,255,255,.4)}
 main{margin-left:var(--nav-w);flex:1;background:#f0f2f5;min-height:100vh}
@@ -110,7 +105,6 @@ tr:hover td{background:#fafbfc}
 .area-card:hover{border-color:var(--orange);background:var(--orange-light)}
 .podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin-bottom:16px}
 .rrow{background:var(--white);border:1px solid var(--border);border-radius:9px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.snap-box{background:var(--blue-light);border:1px solid var(--blue-border,#b8cef5);border-radius:10px;padding:14px 16px;margin-bottom:14px}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:#d1d5de;border-radius:3px}
 </style>
@@ -134,9 +128,9 @@ tr:hover td{background:#fafbfc}
   <div class="sec">Admin</div>
   <div class="nm" onclick="go('approvals')"><span class="nicon">✔</span> Aprovações <span class="nbadge" id="bc">0</span></div>
   <div class="nb">
-    <div class="nu">
-      <div class="nav-av">A</div>
-      <div><div class="nav-un">Admin</div><div class="nav-ur">Administrador</div></div>
+    <div class="nu" onclick="go('usuarios')">
+      <div class="nav-av" id="nav-av">A</div>
+      <div><div class="nav-un" id="nav-nm">Admin</div><div class="nav-ur" id="nav-rl">Administrador</div></div>
     </div>
   </div>
 </nav>
@@ -149,51 +143,68 @@ const MOS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','De
 const STATUS_INIT=['Não iniciada','Em andamento','Concluída','Cancelada','Pausada','Concluída com atraso'];
 const CORS=['#e8621a','#1a4fa0','#16a34a','#7c3aed','#0891b2','#dc2626','#d97706','#0d9488'];
 
+// Cache global
+let _users=[], _areas=[], _aokrs=[], _cokrs=[], _krs=[], _inits=[], _snaps=[];
+
 function toast(msg,t='ok'){const e=document.getElementById('toast');e.textContent=msg;e.className=`toast show ${t}`;setTimeout(()=>e.className='toast',3500)}
+
+// Codificação base64 para suportar acentos e caracteres especiais
+function enc(obj){
+  try{return btoa(unescape(encodeURIComponent(JSON.stringify(obj))))}
+  catch(e){return btoa(JSON.stringify(obj))}
+}
+function dec(s){
+  try{return JSON.parse(decodeURIComponent(escape(atob(s))))}
+  catch(e){return JSON.parse(s)}
+}
 
 async function apiG(aba){
   try{const r=await fetch(`${GAS}?acao=listar&aba=${aba}`);return(await r.json()).dados||[]}
   catch(e){console.error(e);return[]}
 }
 async function apiP(aba,body){
-  try{const r=await fetch(`${GAS}?acao=criar&aba=${aba}&body=${encodeURIComponent(JSON.stringify(body))}`);return await r.json()}
+  try{const r=await fetch(`${GAS}?acao=criar&aba=${aba}&body=${enc(body)}&enc=b64`);return await r.json()}
   catch(e){return{ok:false,erro:e.message}}
 }
 async function apiU(aba,body){
-  try{const r=await fetch(`${GAS}?acao=atualizar&aba=${aba}&body=${encodeURIComponent(JSON.stringify(body))}`);return await r.json()}
+  try{const r=await fetch(`${GAS}?acao=atualizar&aba=${aba}&body=${enc(body)}&enc=b64`);return await r.json()}
   catch(e){return{ok:false,erro:e.message}}
 }
 async function apiSnap(body){
-  try{const r=await fetch(`${GAS}?acao=snapshot&aba=snapshots&body=${encodeURIComponent(JSON.stringify(body))}`);return await r.json()}
+  try{const r=await fetch(`${GAS}?acao=snapshot&aba=snapshots&body=${enc(body)}&enc=b64`);return await r.json()}
   catch(e){return{ok:false,erro:e.message}}
 }
 
+// Carrega todos os dados em cache
+async function loadAll(){
+  [_users,_areas,_aokrs,_cokrs,_krs,_inits,_snaps]=await Promise.all([
+    apiG('usuarios'),apiG('areas'),apiG('okr_area'),apiG('okr_companhia'),
+    apiG('key_results'),apiG('iniciativas'),apiG('snapshots')
+  ]);
+}
+
 function hc(p){p=parseInt(p)||0;return p>=60?'pg':p>=40?'po':'pr'}
-function pb(p){p=parseInt(p)||0;return`<div class="pb"><div class="pf ${hc(p)}" style="width:${Math.min(p,100)}%"></div></div>`}
-function bdg(t){
-  const m={'Publicado':'bg2','Pendente':'by','Em andamento':'bb','Concluída':'bg2','Não iniciada':'bgr',
-    'Cancelada':'br','Aprovado':'bg2','Reprovado':'br','Concluída com atraso':'by','Pausada':'bpu',
-    'ADM':'bor','CEO':'bb','GESTOR':'bg2','sim':'bg2'};
-  return`<span class="bdg ${m[t]||'bgr'}">${t}</span>`
-}
-function hbdg(h){
-  const m={green:'bg2',yellow:'by',red:'br'};
-  const l={green:'No prazo',yellow:'Atenção',red:'Em risco'};
-  return`<span class="bdg ${m[h]||'bgr'}"><span class="bdot"></span>${l[h]||h}</span>`
-}
+function pb(p,w){p=parseInt(p)||0;const s=w?`style="width:${w}"`:''
+;return`<div class="pb" ${s}><div class="pf ${hc(p)}" style="width:${Math.min(p,100)}%"></div></div>`}
+function bdg(t){const m={'Publicado':'bg2','Pendente':'by','Em andamento':'bb','Concluída':'bg2','Não iniciada':'bgr','Cancelada':'br','Aprovado':'bg2','Reprovado':'br','Concluída com atraso':'by','Pausada':'bpu','ADM':'bor','CEO':'bb','GESTOR':'bg2','sim':'bg2'};return`<span class="bdg ${m[t]||'bgr'}">${t}</span>`}
+function hbdg(h){const m={green:'bg2',yellow:'by',red:'br'};const l={green:'No prazo',yellow:'Atenção',red:'Em risco'};return`<span class="bdg ${m[h]||'bgr'}"><span class="bdot"></span>${l[h]||h}</span>`}
 function ld(){return`<div class="ld"><div class="sp"></div> Carregando dados...</div>`}
 function ini(n){return(n||'?').split(' ').map(x=>x[0]||'').slice(0,2).join('').toUpperCase()||'?'}
 function corN(n){let h=0;for(let c of(n||''))h=(h*31+c.charCodeAt(0))%CORS.length;return CORS[h]}
-function av(n,s=36){return`<div style="width:${s}px;height:${s}px;border-radius:50%;background:${corN(n)};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*.3)}px;font-weight:800;color:#fff;flex-shrink:0">${ini(n)}</div>`}
+function av(n,s=36,foto=''){
+  if(foto)return`<div style="width:${s}px;height:${s}px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${foto}" style="width:100%;height:100%;object-fit:cover"></div>`;
+  return`<div style="width:${s}px;height:${s}px;border-radius:50%;background:${corN(n)};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*.3)}px;font-weight:800;color:#fff;flex-shrink:0">${ini(n)}</div>`
+}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;')}
 function mesOpts(sel){return MOS.map((m,i)=>`<option value="${i+1}"${parseInt(sel)===i+1?' selected':''}>${m}</option>`).join('')}
 function anoOpts(){const y=new Date().getFullYear();return[y-1,y,y+1].map(a=>`<option value="${a}"${a===y?' selected':''}>${a}</option>`).join('')}
+function userOpts(selNome){return`<option value="">— Selecione —</option>`+_users.map(u=>`<option value="${esc(u.nome)}"${u.nome===selNome?' selected':''}>${u.nome} (${u.area||''})</option>`).join('')}
+function areaOpts(sel){return`<option value="">Todas as Áreas</option>`+_areas.filter(a=>a.ativo!=='não').map(a=>`<option value="${esc(a.nome)}"${a.nome===sel?' selected':''}>${a.nome}</option>`).join('')}
 
-// Retorna o snapshot mais recente até o mês/ano indicado para um item
-function snapAteMes(snaps,tipo,item_id,mes,ano){
-  const rel=snaps.filter(s=>s.tipo===tipo&&s.item_id==item_id&&(parseInt(s.ano)<parseInt(ano)||(parseInt(s.ano)===parseInt(ano)&&parseInt(s.mes)<=parseInt(mes))));
+function snapAteMes(tipo,item_id,mes,ano){
+  const rel=_snaps.filter(s=>s.tipo===tipo&&s.item_id==item_id&&(parseInt(s.ano)<parseInt(ano)||(parseInt(s.ano)===parseInt(ano)&&parseInt(s.mes)<=parseInt(mes))));
   if(!rel.length)return null;
-  return rel.sort((a,b)=>{const da=parseInt(a.ano)*12+parseInt(a.mes);const db=parseInt(b.ano)*12+parseInt(b.mes);return db-da})[0];
+  return rel.sort((a,b)=>(parseInt(b.ano)*12+parseInt(b.mes))-(parseInt(a.ano)*12+parseInt(a.mes)))[0];
 }
 
 function go(p){
@@ -201,16 +212,14 @@ function go(p){
   const idx={dashboard:0,ranking:1,areas:3,usuarios:4,'company-okrs':6,'area-okrs':7,'key-results':8,initiatives:9,manutencao:11,approvals:13};
   const items=document.querySelectorAll('.nm');
   if(items[idx[p]])items[idx[p]].classList.add('active');
-  ({dashboard:pDash,ranking:pRank,areas:pAreas,usuarios:pUsers,
-    'company-okrs':pCOkr,'area-okrs':pAOkr,'key-results':pKR,
-    initiatives:pInit,manutencao:pMaint,approvals:pApprov})[p]?.()
+  ({dashboard:pDash,ranking:pRank,areas:pAreas,usuarios:pUsers,'company-okrs':pCOkr,'area-okrs':pAOkr,'key-results':pKR,initiatives:pInit,manutencao:pMaint,approvals:pApprov})[p]?.()
 }
 function openM(h){document.getElementById('mr').innerHTML=`<div class="mo" onclick="if(event.target===this)closeM()">${h}</div>`}
 function closeM(){document.getElementById('mr').innerHTML=''}
 
-// ════════════════════════════════
+// ══════════════════════════════════════
 // DASHBOARD
-// ════════════════════════════════
+// ══════════════════════════════════════
 async function pDash(){
   const now=new Date();
   document.getElementById('main').innerHTML=`
@@ -218,105 +227,100 @@ async function pDash(){
   <div class="cnt">
     <div class="fb">
       <span class="fl">🔍 Área:</span>
-      <select class="fs" id="fa" onchange="lDash()"><option value="">Todas as Áreas</option></select>
+      <select class="fs" id="fa" onchange="lDash()">${areaOpts('')}</select>
       <div class="fd"></div>
-      <span class="fl">📅 Mês referência:</span>
+      <span class="fl">📅 Mês:</span>
       <select class="fs" id="fmes" onchange="lDash()">${mesOpts(now.getMonth()+1)}</select>
       <select class="fs" id="fano" onchange="lDash()">${anoOpts()}</select>
     </div>
     <div id="dc">${ld()}</div>
   </div>`;
-  await lDash();
+  await loadAll();
+  lDash();
 }
 
-async function lDash(){
-  const[okrs,krs,aokrs,aprov,snaps,inits]=await Promise.all([
-    apiG('okr_companhia'),apiG('key_results'),apiG('okr_area'),
-    apiG('aprovacoes'),apiG('snapshots'),apiG('iniciativas')
-  ]);
-  const fa=document.getElementById('fa');
-  const areas=[...new Set(aokrs.map(o=>o.area).filter(Boolean))];
-  if(fa&&fa.options.length===1)areas.forEach(a=>{fa.innerHTML+=`<option value="${a}">${a}</option>`});
-  const af=fa?.value||'';
+function lDash(){
+  const af=document.getElementById('fa')?.value||'';
   const mes=parseInt(document.getElementById('fmes')?.value)||new Date().getMonth()+1;
   const ano=parseInt(document.getElementById('fano')?.value)||new Date().getFullYear();
   const mesLabel=`${MOS[mes-1]}/${ano}`;
-
-  // Filtra OKRs pela área
-  const listaOkrs=af?aokrs.filter(o=>o.area===af):okrs;
-
-  // Para cada KR, pega snapshot do mês ou mais recente anterior
-  const krsComSnap=krs.map(k=>{
-    const snap=snapAteMes(snaps,'kr',k.id,mes,ano);
-    return{...k,
-      _snapProg:snap?parseInt(snap.pct)||0:parseInt(k.progresso)||0,
-      _snapSaude:snap?snap.saude:k.saude||'green',
-      _snapValor:snap?snap.valor_atual:k.atual||0
-    };
-  });
-
-  // Para cada iniciativa, pega snapshot do mês ou mais recente anterior
-  const initsComSnap=inits.map(i=>{
-    const snap=snapAteMes(snaps,'iniciativa',i.id,mes,ano);
-    return{...i,
-      _snapStatus:snap?snap.status:i.status||'Não iniciada',
-      _snapPct:snap?parseInt(snap.pct)||0:parseInt(i.pct)||0
-    };
-  });
-
-  const tp=listaOkrs.length?Math.round(listaOkrs.reduce((s,o)=>s+(parseInt(o.progresso)||0),0)/listaOkrs.length):0;
-  const risco=krsComSnap.filter(k=>k._snapSaude==='red').length;
-  const pend=aprov.filter(a=>a.status==='Pendente').length;
-  document.getElementById('bc').textContent=pend;
-
   const el=document.getElementById('dc');if(!el)return;
+
+  // OKRs da área filtrada
+  const aokrsFiltrados=af?_aokrs.filter(o=>o.area===af):_aokrs;
+
+  // Para cada OKR da companhia, calcula % de OKRs de área vinculados da área filtrada
+  const cokrsComPct=_cokrs.map(co=>{
+    const totalVinc=_aokrs.filter(ao=>ao.okr_companhia_id==co.id).length;
+    const daArea=af?_aokrs.filter(ao=>ao.okr_companhia_id==co.id&&ao.area===af).length:totalVinc;
+    const pct=totalVinc>0?Math.round((daArea/totalVinc)*100):0;
+    return{...co,_totalVinc:totalVinc,_daArea:daArea,_pctArea:pct};
+  });
+
+  // OKRs da área com snapshot do mês
+  const aokrsComSnap=aokrsFiltrados.map(ao=>{
+    const snap=snapAteMes('okr_area',ao.id,mes,ano);
+    return{...ao,_snapProg:snap?parseInt(snap.pct)||0:parseInt(ao.progresso)||0,_snapSaude:snap?snap.saude:ao.saude||'green'};
+  });
+
+  const pend=_users.length>0?0:0; // aprovações pendentes
+  const totalProg=aokrsComSnap.length?Math.round(aokrsComSnap.reduce((s,o)=>s+o._snapProg,0)/aokrsComSnap.length):0;
+
   el.innerHTML=`
   <div class="mg">
-    <div class="mc"><div style="font-size:28px;margin-bottom:8px">📊</div><div class="ml">Progresso — ${mesLabel}</div><div class="mv" style="color:var(--orange)">${tp}%</div><div style="margin-top:8px">${pb(tp)}</div></div>
-    <div class="mc"><div style="font-size:28px;margin-bottom:8px">🎯</div><div class="ml">OKRs Ativos</div><div class="mv">${listaOkrs.length}</div></div>
-    <div class="mc"><div style="font-size:28px;margin-bottom:8px">⚠️</div><div class="ml">KRs em Risco — ${mesLabel}</div><div class="mv" style="color:var(--danger)">${risco}</div></div>
-    <div class="mc"><div style="font-size:28px;margin-bottom:8px">🕐</div><div class="ml">Aprovações Pendentes</div><div class="mv" style="color:var(--warning)">${pend}</div>
+    <div class="mc"><div style="font-size:28px;margin-bottom:8px">📊</div><div class="ml">Progresso — ${mesLabel}</div><div class="mv" style="color:var(--orange)">${totalProg}%</div><div style="margin-top:8px">${pb(totalProg)}</div></div>
+    <div class="mc"><div style="font-size:28px;margin-bottom:8px">🎯</div><div class="ml">OKRs de Área${af?' ('+af+')':''}</div><div class="mv">${aokrsFiltrados.length}</div></div>
+    <div class="mc"><div style="font-size:28px;margin-bottom:8px">🏢</div><div class="ml">OKRs Companhia</div><div class="mv">${_cokrs.length}</div></div>
+    <div class="mc"><div style="font-size:28px;margin-bottom:8px">✅</div><div class="ml">Aprovações Pendentes</div><div class="mv" style="color:var(--warning)" id="pend-count">—</div>
       <div style="margin-top:6px"><button class="btn bg bsm" onclick="go('approvals')">Ver →</button></div>
     </div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-    <div class="card"><div class="ch"><div class="ct">📊 KRs KPI — ${mesLabel}</div></div><div class="cb">
-      <div style="display:flex;flex-direction:column;gap:10px">
-        ${krsComSnap.filter(k=>k.tipo==='KPI').slice(0,5).map(k=>`
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="hd" style="background:${k._snapSaude==='green'?'var(--success)':k._snapSaude==='yellow'?'var(--warning)':'var(--danger)'}"></div>
-          <div style="flex:1;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${k.nome}</div>
-          <div style="font-size:11px;color:var(--gray-mid)">${k.unidade} ${parseFloat(k._snapValor||0).toLocaleString('pt-BR')}</div>
-          <div style="font-size:13px;font-weight:800;color:${k._snapProg>=60?'var(--success)':k._snapProg>=40?'var(--warning)':'var(--danger)'}">${k._snapProg}%</div>
-        </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--gray-mid)">Nenhum KR KPI cadastrado</div>'}
-      </div>
-    </div></div>
-    <div class="card"><div class="ch"><div class="ct">✅ Iniciativas — ${mesLabel}</div></div><div class="cb">
-      <div style="display:flex;flex-direction:column;gap:8px">
-        ${initsComSnap.slice(0,5).map(i=>`
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-          <div style="font-size:12px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.nome}</div>
-          ${bdg(i._snapStatus)}
-        </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--gray-mid)">Nenhuma iniciativa cadastrada</div>'}
-      </div>
-    </div></div>
-  </div>
-  <div class="card"><div class="ch"><div class="ct">⚠️ KRs com Atenção — ${mesLabel}</div></div><div class="cb">
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
-      ${krsComSnap.filter(k=>k._snapSaude!=='green').slice(0,6).map(k=>`
-      <div style="background:var(--gray-lighter);border-radius:8px;padding:10px 12px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-          <div style="font-size:12px;font-weight:600;flex:1;margin-right:6px">${k.nome}</div>${hbdg(k._snapSaude)}
-        </div>${pb(k._snapProg)}
-        <div style="text-align:right;font-size:11px;font-weight:700;margin-top:3px">${k._snapProg}%</div>
-      </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--gray-mid);grid-column:1/-1">Todos os KRs no prazo ✅</div>'}
+
+  <!-- OKRs Companhia com barra de cobertura da área -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="ch"><div class="ct">🏢 OKRs da Companhia — cobertura ${af?'da área '+af:'por área'}</div></div>
+    <div class="cb">
+      ${cokrsComPct.map(co=>`
+      <div style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <div style="font-size:13px;font-weight:600;flex:1;margin-right:12px">${co.nome}</div>
+          <div style="font-size:11px;color:var(--gray-mid);white-space:nowrap">${co._daArea} de ${co._totalVinc} OKRs vinculados ${af?'da área':''}</div>
+          <div style="font-size:13px;font-weight:800;min-width:42px;text-align:right;color:${co._pctArea>=60?'var(--success)':co._pctArea>=40?'var(--warning)':'var(--danger)'};margin-left:10px">${co._pctArea}%</div>
+        </div>
+        <div class="pb"><div class="pf ${hc(co._pctArea)}" style="width:${co._pctArea}%"></div></div>
+      </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--gray-mid)">Nenhum OKR da companhia cadastrado</div>'}
     </div>
-  </div></div>`;
+  </div>
+
+  <!-- OKRs de Área com status do mês -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="ch"><div class="ct">📋 OKRs por Área — status em ${mesLabel}</div></div>
+    <div class="cb" style="padding:0">
+      ${aokrsComSnap.length?`<table>
+        <thead><tr><th>OKR Área</th><th>Área</th><th>Responsável</th><th>Status ${mesLabel}</th><th>Progresso</th></tr></thead>
+        <tbody>${aokrsComSnap.map(o=>`<tr>
+          <td style="font-weight:600">${o.nome}</td>
+          <td style="font-size:12px;color:var(--gray-mid)">${o.area}</td>
+          <td style="font-size:12px;color:var(--gray-mid)">${o.responsavel||'—'}</td>
+          <td>${hbdg(o._snapSaude)}</td>
+          <td style="min-width:150px">${pb(o._snapProg)}<div style="text-align:right;font-size:11px;font-weight:700;margin-top:2px">${o._snapProg}%</div></td>
+        </tr>`).join('')}</tbody>
+      </table>`:'<div style="text-align:center;padding:30px;color:var(--gray-mid)">Nenhum OKR de área'+(af?' para '+af:'')+' cadastrado</div>'}
+    </div>
+  </div>`;
+
+  // Carrega pendentes separado
+  apiG('aprovacoes').then(ap=>{
+    const pend=ap.filter(a=>a.status==='Pendente').length;
+    document.getElementById('bc').textContent=pend;
+    const el=document.getElementById('pend-count');
+    if(el)el.textContent=pend;
+  });
 }
 
-// ════════════════════════════════
-// RANKING
-// ════════════════════════════════
+// ══════════════════════════════════════
+// RANKING — com foto do usuário
+// ══════════════════════════════════════
 async function pRank(){
   document.getElementById('main').innerHTML=`
   <div class="ph"><div><div class="pt">🏆 Ranking de Desempenho</div><div class="ps">Comparativo por área</div></div></div>
@@ -327,28 +331,41 @@ async function pRank(){
     </div>
     <div id="rc">${ld()}</div>
   </div>`;
-  await lRank();
+  await loadAll();
+  lRank();
 }
-async function lRank(){
-  const aokrs=await apiG('okr_area');
-  const areas=[...new Set(aokrs.map(o=>o.area).filter(Boolean))];
+
+function lRank(){
+  const mes=parseInt(document.getElementById('rm')?.value)||new Date().getMonth()+1;
+  const ano=parseInt(document.getElementById('ra')?.value)||new Date().getFullYear();
+  const areas=[...new Set(_aokrs.map(o=>o.area).filter(Boolean))];
   const dados=areas.map(area=>{
-    const list=aokrs.filter(o=>o.area===area);
-    const pct=list.length?Math.round(list.reduce((s,o)=>s+(parseInt(o.progresso)||0),0)/list.length):0;
-    return{area,pct,resp:list[0]?.responsavel||area};
+    const list=_aokrs.filter(o=>o.area===area);
+    // Pega snapshot do mês ou usa progresso atual
+    const pcts=list.map(ao=>{
+      const snap=snapAteMes('okr_area',ao.id,mes,ano);
+      return snap?parseInt(snap.pct)||0:parseInt(ao.progresso)||0;
+    });
+    const pct=pcts.length?Math.round(pcts.reduce((s,p)=>s+p,0)/pcts.length):0;
+    const resp=list[0]?.responsavel||area;
+    // Busca usuário pelo nome para pegar foto
+    const user=_users.find(u=>u.nome===resp);
+    return{area,pct,resp,foto:user?.foto||''};
   }).sort((a,b)=>b.pct-a.pct);
+
   const el=document.getElementById('rc');if(!el)return;
-  if(!dados.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-mid)">Nenhum dado disponível.</div>';return}
+  if(!dados.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-mid)">Nenhum dado de área disponível.</div>';return}
   const tr=['🥇','🥈','🥉'];
   const top3=dados.slice(0,3);
   const po=[top3[1],top3[0],top3[2]].filter(Boolean);
   const sh=[58,80,42];const sc=['var(--blue)','var(--orange)','#6b7280'];const ri=[1,0,2];
-  el.innerHTML=`<div class="card"><div class="ch"><div class="ct">🏆 Pódio</div></div><div class="cb">
+  el.innerHTML=`<div class="card"><div class="ch"><div class="ct">🏆 Pódio — ${MOS[mes-1]}/${ano}</div></div><div class="cb">
     <div class="podium-wrap">
       ${po.map((u,i)=>`<div style="display:flex;flex-direction:column;align-items:center;width:120px">
         <div style="font-size:20px;text-align:center;margin-bottom:4px">${tr[ri[i]]}</div>
-        ${av(u.resp,54)}
+        ${av(u.resp,54,u.foto)}
         <div style="font-size:12px;font-weight:700;text-align:center;margin-top:5px">${u.area}</div>
+        <div style="font-size:11px;color:var(--gray-mid);text-align:center">${u.resp}</div>
         <div style="font-size:18px;font-weight:800;text-align:center;color:${ri[i]===0?'var(--orange)':ri[i]===1?'var(--blue)':'var(--gray-mid)'};margin:4px 0 8px">${u.pct}%</div>
         <div style="border-radius:8px 8px 0 0;width:100%;height:${sh[i]}px;background:${sc[i]};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:rgba(255,255,255,.8)">${ri[i]+1}º</div>
       </div>`).join('')}
@@ -356,8 +373,8 @@ async function lRank(){
     <div style="height:1px;background:var(--border);margin:4px 0 16px"></div>
     ${dados.map((u,i)=>`<div class="rrow">
       <div style="width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:${i===0?'var(--orange)':i===1?'var(--blue)':i===2?'#6b7280':'var(--gray-lighter)'};color:${i<3?'#fff':'var(--gray-mid)'};flex-shrink:0">${i+1}</div>
-      ${av(u.resp,36)}
-      <div style="flex:1"><div style="font-size:13px;font-weight:700">${u.area}</div></div>
+      ${av(u.resp,36,u.foto)}
+      <div style="flex:1"><div style="font-size:13px;font-weight:700">${u.area}</div><div style="font-size:11px;color:var(--gray-mid)">${u.resp}</div></div>
       <div style="min-width:150px">${pb(u.pct)}</div>
       <div style="font-size:14px;font-weight:800;min-width:42px;text-align:right;color:${u.pct>=60?'var(--success)':u.pct>=40?'var(--warning)':'var(--danger)'}">${u.pct}%</div>
       ${i<3?`<div style="font-size:18px">${tr[i]}</div>`:'<div style="width:20px"></div>'}
@@ -365,26 +382,24 @@ async function lRank(){
   </div></div>`;
 }
 
-// ════════════════════════════════
+// ══════════════════════════════════════
 // ÁREAS
-// ════════════════════════════════
+// ══════════════════════════════════════
 async function pAreas(){
   document.getElementById('main').innerHTML=`
   <div class="ph"><div><div class="pt">Áreas</div><div class="ps">Cadastro de áreas e departamentos</div></div>
   <button class="btn bp" onclick="mNovaArea()">+ Nova Área</button></div>
   <div class="cnt"><div id="al2">${ld()}</div></div>`;
-  await lAreas();
+  _areas=await apiG('areas');lAreas();
 }
-async function lAreas(){
-  const areas=await apiG('areas');
+function lAreas(){
   const el=document.getElementById('al2');if(!el)return;
-  const ativas=areas.filter(a=>a.ativo!=='não');
-  if(!ativas.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)"><div style="font-size:32px;margin-bottom:10px">🏬</div><div style="font-size:14px;font-weight:600">Nenhuma área cadastrada</div><div style="font-size:13px;margin-top:4px">Clique em "+ Nova Área" para começar</div></div>';return}
+  const ativas=_areas.filter(a=>a.ativo!=='não');
+  if(!ativas.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)"><div style="font-size:32px;margin-bottom:10px">🏬</div><div style="font-size:14px;font-weight:600">Nenhuma área cadastrada</div></div>';return}
   el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">
     ${ativas.map(a=>`<div class="area-card" onclick='mEditArea(${JSON.stringify(a).replace(/"/g,"&quot;")})'>
       <div style="width:48px;height:48px;border-radius:10px;background:var(--orange-light);border:1px solid var(--orange-border);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🏬</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:700;margin-bottom:2px">${a.nome}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;margin-bottom:2px">${a.nome}</div>
         <div style="font-size:12px;color:var(--gray-mid);margin-bottom:5px">${a.descricao||'Sem descrição'}</div>
         <div style="font-size:11px;color:var(--gray-mid)">👤 ${a.responsavel||'—'}</div>
       </div>
@@ -396,7 +411,7 @@ function mNovaArea(){
   <div class="mbd">
     <div class="fg"><label class="flb">Nome da Área *</label><input class="fi" id="an" placeholder="Ex: Marketing, Financeiro..."/></div>
     <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="ad" placeholder="Responsabilidades..."></textarea></div>
-    <div class="fg"><label class="flb">Responsável</label><input class="fi" id="ar" placeholder="Nome do gestor"/></div>
+    <div class="fg"><label class="flb">Responsável</label><select class="fsl" id="ar">${userOpts('')}</select></div>
   </div>
   <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bsa" onclick="svArea()">💾 Salvar</button></div></div>`);
 }
@@ -405,7 +420,7 @@ function mEditArea(a){
   <div class="mbd">
     <div class="fg"><label class="flb">Nome *</label><input class="fi" id="an" value="${esc(a.nome)}"/></div>
     <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="ad">${esc(a.descricao||'')}</textarea></div>
-    <div class="fg"><label class="flb">Responsável</label><input class="fi" id="ar" value="${esc(a.responsavel||'')}"/></div>
+    <div class="fg"><label class="flb">Responsável</label><select class="fsl" id="ar">${userOpts(a.responsavel)}</select></div>
     <div class="fg"><label class="flb">Status</label><select class="fsl" id="aativo"><option value="sim"${a.ativo==='sim'?' selected':''}>Ativa</option><option value="não"${a.ativo==='não'?' selected':''}>Inativa</option></select></div>
   </div>
   <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bsa" onclick='svEditArea(${JSON.stringify(a).replace(/"/g,"&quot;")})'>💾 Salvar</button></div></div>`);
@@ -415,47 +430,48 @@ async function svArea(){
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiP('areas',{nome:n,descricao:document.getElementById('ad').value,responsavel:document.getElementById('ar').value});
-  if(r.ok){toast('Área criada! ✅');closeM();lAreas();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('Área criada! ✅');closeM();_areas=await apiG('areas');lAreas();}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 async function svEditArea(a){
   const btn=document.getElementById('bsa');const n=document.getElementById('an').value.trim();
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiU('areas',{...a,nome:n,descricao:document.getElementById('ad').value,responsavel:document.getElementById('ar').value,ativo:document.getElementById('aativo').value});
-  if(r.ok){toast('Área atualizada! ✅');closeM();lAreas();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('Área atualizada! ✅');closeM();_areas=await apiG('areas');lAreas();}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
-// ════════════════════════════════
+// ══════════════════════════════════════
 // USUÁRIOS
-// ════════════════════════════════
+// ══════════════════════════════════════
 async function pUsers(){
   document.getElementById('main').innerHTML=`
   <div class="ph"><div><div class="pt">Usuários</div><div class="ps">Gerenciamento de perfis e acessos</div></div>
   <button class="btn bp" onclick="mUser()">+ Novo Usuário</button></div>
   <div class="cnt"><div id="ul">${ld()}</div></div>`;
-  await lUsers();
+  await loadAll();lUsers();
 }
-async function lUsers(){
-  const users=await apiG('usuarios');
+function lUsers(){
   const el=document.getElementById('ul');if(!el)return;
-  if(!users.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)"><div style="font-size:32px;margin-bottom:10px">👥</div><div style="font-size:14px;font-weight:600">Nenhum usuário cadastrado</div></div>';return}
+  if(!_users.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)"><div style="font-size:32px;margin-bottom:10px">👥</div><div style="font-size:14px;font-weight:600">Nenhum usuário cadastrado</div></div>';return}
   el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
-    ${users.map(u=>`<div class="uc" onclick='mUser(${JSON.stringify(u).replace(/"/g,"&quot;")})'>${av(u.nome,48)}
+    ${_users.map(u=>`<div class="uc" onclick='mUser(${JSON.stringify(u).replace(/"/g,"&quot;")})'>${av(u.nome,48,u.foto||'')}
     <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;margin-bottom:2px">${u.nome||'—'}</div>
     <div style="font-size:12px;color:var(--gray-mid);margin-bottom:5px">${u.area||'—'} · ${u.email||'—'}</div>${bdg(u.tipo||'GESTOR')}</div></div>`).join('')}
   </div>`;
 }
 async function mUser(u){
-  const areas=await apiG('areas');const novo=!u;
+  const novo=!u;
   openM(`<div class="md"><div class="mh"><div class="mt">${novo?'Novo Usuário':`Editar — ${u.nome}`}</div><button class="mc2" onclick="closeM()">×</button></div>
   <div class="mbd">
     <div style="text-align:center;margin-bottom:18px"><div class="ua" onclick="document.getElementById('pi').click()">
-      <div style="width:70px;height:70px;border-radius:50%;background:var(--orange-light);border:2px solid var(--orange-border);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:28px" id="pp">${u?ini(u.nome):'📷'}</div>
+      <div style="width:70px;height:70px;border-radius:50%;background:var(--orange-light);border:2px solid var(--orange-border);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:28px;overflow:hidden" id="pp">${u&&u.foto?`<img src="${u.foto}" style="width:100%;height:100%;object-fit:cover">`:u?ini(u.nome):'📷'}</div>
       <div style="font-size:12px;font-weight:600;color:var(--gray-mid)">Clique para enviar foto</div>
     </div><input type="file" id="pi" accept="image/*" style="display:none" onchange="prvFoto(event)"/></div>
     <div class="fr">
       <div class="fg"><label class="flb">Nome completo *</label><input class="fi" id="un" value="${esc(u?.nome||'')}" placeholder="Nome e sobrenome"/></div>
-      <div class="fg"><label class="flb">Área *</label><select class="fsl" id="ua"><option value="">— Selecione —</option>${areas.filter(a=>a.ativo!=='não').map(a=>`<option value="${esc(a.nome)}"${u?.area===a.nome?' selected':''}>${a.nome}</option>`).join('')}</select></div>
+      <div class="fg"><label class="flb">Área *</label><select class="fsl" id="ua"><option value="">— Selecione —</option>${_areas.filter(a=>a.ativo!=='não').map(a=>`<option value="${esc(a.nome)}"${u?.area===a.nome?' selected':''}>${a.nome}</option>`).join('')}</select></div>
     </div>
     <div class="fg"><label class="flb">E-mail *</label><input class="fi" id="ue" type="email" value="${esc(u?.email||'')}" placeholder="email@empresa.com"/></div>
     <div class="fr">
@@ -467,40 +483,54 @@ async function mUser(u){
       <option value="CEO"${u?.tipo==='CEO'?' selected':''}>CEO — Visão estratégica</option>
       <option value="GESTOR"${u?.tipo==='GESTOR'?' selected':''}>Gestor de Área</option>
     </select></div>
+    <input type="hidden" id="foto-data" value="${esc(u?.foto||'')}"/>
   </div>
   <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bsu" onclick="svUser('${u?.id||''}','${esc(u?.criado_em||'')}')">💾 Salvar</button></div></div>`);
 }
-function prvFoto(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{document.getElementById('pp').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`};r.readAsDataURL(f)}
+function prvFoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.getElementById('pp').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover">`;
+    document.getElementById('foto-data').value=ev.target.result;
+  };
+  r.readAsDataURL(f);
+}
 async function svUser(id,ce){
   const btn=document.getElementById('bsu');
   const n=document.getElementById('un').value.trim(),e=document.getElementById('ue').value.trim();
   const area=document.getElementById('ua').value,s=document.getElementById('us').value,s2=document.getElementById('us2').value;
+  const foto=document.getElementById('foto-data').value;
   if(!n){toast('Informe o nome','err');return}
   if(!e){toast('Informe o e-mail','err');return}
   if(!area){toast('Selecione a área','err');return}
   if(!id&&!s){toast('Informe a senha','err');return}
   if(s&&s!==s2){toast('Senhas não conferem!','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
-  const body={nome:n,area,email:e,senha:s||'',tipo:document.getElementById('ut').value,foto:''};
+  const body={nome:n,area,email:e,senha:s||'',tipo:document.getElementById('ut').value,foto};
   const r=!id?await apiP('usuarios',body):await apiU('usuarios',{...body,id,ativo:'sim',criado_em:ce});
-  if(r.ok){toast('Usuário salvo! ✅');closeM();lUsers();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){
+    toast('Usuário salvo! ✅');closeM();
+    _users=await apiG('usuarios');
+    // Atualiza avatar do nav se for o admin
+    lUsers();
+  }else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
-// ════════════════════════════════
+// ══════════════════════════════════════
 // OKR COMPANHIA
-// ════════════════════════════════
+// ══════════════════════════════════════
 async function pCOkr(){
   document.getElementById('main').innerHTML=`
   <div class="ph"><div><div class="pt">OKRs da Companhia</div><div class="ps">Objetivos estratégicos corporativos</div></div>
   <button class="btn bp" onclick="mNovoCOkr()">+ Novo OKR</button></div>
   <div class="cnt"><div id="col">${ld()}</div></div>`;
-  await lCOkr();
+  await loadAll();lCOkr();
 }
-async function lCOkr(){
-  const[okrs,aokrs]=await Promise.all([apiG('okr_companhia'),apiG('okr_area')]);
+function lCOkr(){
   const el=document.getElementById('col');if(!el)return;
-  if(!okrs.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)">Nenhum OKR cadastrado ainda.</div>';return}
-  el.innerHTML=okrs.map(o=>`<div class="oi">
+  if(!_cokrs.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)">Nenhum OKR cadastrado ainda.</div>';return}
+  el.innerHTML=_cokrs.map(o=>`<div class="oi">
     <div class="oh" onclick="tog('${o.id}')"><span class="chv" id="cv-${o.id}">▶</span>
       <div style="flex:1;min-width:0"><div class="on">${o.nome}</div>
         <div class="om"><span>👤 ${o.responsavel||'—'}</span><span>📅 ${o.data_inicio||'—'} → ${o.data_fim||'—'}</span>${bdg(o.status||'Pendente')}${hbdg(o.saude||'green')}</div>
@@ -509,7 +539,7 @@ async function lCOkr(){
     </div>
     <div class="oc" id="oc-${o.id}">
       <div style="font-size:10px;font-weight:700;color:var(--gray-mid);text-transform:uppercase;margin-bottom:8px">OKRs de Área vinculados</div>
-      ${aokrs.filter(a=>a.okr_companhia_id==o.id).map(a=>`<div class="kr">
+      ${_aokrs.filter(a=>a.okr_companhia_id==o.id).map(a=>`<div class="kr">
         <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${a.nome}</div>
           <div style="font-size:11px;color:var(--gray-mid)">${a.area} · 👤 ${a.responsavel||'—'}</div>
         </div>
@@ -525,7 +555,7 @@ function mNovoCOkr(){
   <div class="mbd">
     <div class="fg"><label class="flb">Nome do Objetivo *</label><input class="fi" id="mn" placeholder="Ex: Faturar R$100M em 2026"/></div>
     <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="md2" placeholder="Descreva o objetivo..."></textarea></div>
-    <div class="fr"><div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2" placeholder="Nome"/></div><div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div></div>
+    <div class="fr"><div class="fg"><label class="flb">Responsável</label><select class="fsl" id="mr2">${userOpts('')}</select></div><div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div></div>
     <div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div>
   </div>
   <div class="mf"><button class="btn bg" onclick="closeM()">Cancelar</button><button class="btn bp" id="bsc2" onclick="svCOkr()">💾 Salvar</button></div></div>`);
@@ -535,43 +565,49 @@ async function svCOkr(){
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiP('okr_companhia',{nome:n,descricao:document.getElementById('md2').value,responsavel:document.getElementById('mr2').value,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value});
-  if(r.ok){toast('OKR criado! ✅');closeM();lCOkr();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('OKR criado! ✅');closeM();_cokrs=await apiG('okr_companhia');lCOkr();}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
-// ════════════════════════════════
-// OKR ÁREA
-// ════════════════════════════════
+// ══════════════════════════════════════
+// OKR ÁREA — com filtro de área
+// ══════════════════════════════════════
 async function pAOkr(){
   document.getElementById('main').innerHTML=`
   <div class="ph"><div><div class="pt">OKRs por Área</div><div class="ps">Objetivos departamentais</div></div>
   <button class="btn bp" onclick="mNovoAOkr()">+ Novo OKR Área</button></div>
-  <div class="cnt"><div id="aol">${ld()}</div></div>`;
-  await lAOkr();
+  <div class="cnt">
+    <div class="fb"><span class="fl">🔍 Filtrar área:</span>
+      <select class="fs" id="fa-ao" onchange="lAOkr()">${areaOpts('')}</select>
+    </div>
+    <div id="aol">${ld()}</div>
+  </div>`;
+  await loadAll();lAOkr();
 }
-async function lAOkr(){
-  const[ao,co]=await Promise.all([apiG('okr_area'),apiG('okr_companhia')]);
+function lAOkr(){
+  const af=document.getElementById('fa-ao')?.value||'';
   const el=document.getElementById('aol');if(!el)return;
-  if(!ao.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)">Nenhum OKR de área cadastrado.</div>';return}
-  const areas=[...new Set(ao.map(o=>o.area).filter(Boolean))];
+  const filtrado=af?_aokrs.filter(o=>o.area===af):_aokrs;
+  if(!filtrado.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)">Nenhum OKR de área'+(af?' para '+af:'')+' cadastrado.</div>';return}
+  const areas=[...new Set(filtrado.map(o=>o.area).filter(Boolean))];
   el.innerHTML=areas.map(area=>`<div style="margin-bottom:22px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="width:4px;height:18px;background:var(--orange);border-radius:2px"></div><div style="font-size:14px;font-weight:800">${area}</div></div>
-    ${ao.filter(o=>o.area===area).map(o=>`<div class="oi" style="margin-bottom:8px"><div class="oh" style="cursor:default">
+    ${filtrado.filter(o=>o.area===area).map(o=>`<div class="oi" style="margin-bottom:8px"><div class="oh" style="cursor:default">
       <div style="flex:1;min-width:0"><div class="on">${o.nome}</div>
-        <div class="om"><span>👤 ${o.responsavel||'—'}</span><span style="color:var(--blue);font-size:11px">→ ${co.find(c=>c.id==o.okr_companhia_id)?.nome||'—'}</span>${bdg(o.status||'Pendente')}${hbdg(o.saude||'green')}</div>
+        <div class="om"><span>👤 ${o.responsavel||'—'}</span><span style="color:var(--blue);font-size:11px">→ ${_cokrs.find(c=>c.id==o.okr_companhia_id)?.nome||'—'}</span>${bdg(o.status||'Pendente')}${hbdg(o.saude||'green')}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;min-width:200px">${pb(o.progresso)}<span style="font-size:13px;font-weight:800;min-width:36px;text-align:right">${o.progresso||0}%</span></div>
     </div></div>`).join('')}
   </div>`).join('');
 }
 async function mNovoAOkr(){
-  const[co,areas]=await Promise.all([apiG('okr_companhia'),apiG('areas')]);
   openM(`<div class="md"><div class="mh"><div class="mt">Novo OKR Área</div><button class="mc2" onclick="closeM()">×</button></div>
   <div class="mbd">
-    <div class="fg"><label class="flb">OKR Companhia *</label><select class="fsl" id="mc3"><option value="">— Selecione —</option>${co.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flb">OKR Companhia *</label><select class="fsl" id="mc3"><option value="">— Selecione —</option>${_cokrs.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select></div>
     <div class="fg"><label class="flb">Nome *</label><input class="fi" id="mn" placeholder="Objetivo da área"/></div>
     <div class="fr">
-      <div class="fg"><label class="flb">Área *</label><select class="fsl" id="ma"><option value="">— Selecione —</option>${areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')}</select></div>
-      <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2"/></div>
+      <div class="fg"><label class="flb">Área *</label><select class="fsl" id="ma"><option value="">— Selecione —</option>${_areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')}</select></div>
+      <div class="fg"><label class="flb">Responsável *</label><select class="fsl" id="mr2">${userOpts('')}</select></div>
     </div>
     <div class="fr"><div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div><div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div></div>
   </div>
@@ -582,37 +618,44 @@ async function svAOkr(){
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiP('okr_area',{okr_companhia_id:document.getElementById('mc3').value,nome:n,area:document.getElementById('ma').value,responsavel:document.getElementById('mr2').value,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value});
-  if(r.ok){toast('OKR Área criado! ✅');closeM();lAOkr();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('OKR Área criado! ✅');closeM();_aokrs=await apiG('okr_area');lAOkr();}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
-// ════════════════════════════════
-// KEY RESULTS — vincula ao OKR ÁREA
-// ════════════════════════════════
-let _krc=[];
+// ══════════════════════════════════════
+// KEY RESULTS — filtro por área
+// ══════════════════════════════════════
 async function pKR(){
   document.getElementById('main').innerHTML=`
   <div class="ph"><div><div class="pt">Key Results</div><div class="ps">KPIs e projetos estratégicos vinculados aos OKRs de Área</div></div>
   <button class="btn bp" onclick="mNovoKR()">+ Novo KR</button></div>
   <div class="cnt">
-    <div class="tabs"><div class="tab active" onclick="fKR('todos',this)">Todos</div><div class="tab" onclick="fKR('KPI',this)">KPI</div><div class="tab" onclick="fKR('Projeto',this)">Projeto</div></div>
+    <div class="fb">
+      <span class="fl">🔍 Área:</span>
+      <select class="fs" id="fa-kr" onchange="lKR()">${areaOpts('')}</select>
+      <div class="fd"></div>
+      <div class="tabs" style="margin:0"><div class="tab active" onclick="fKR('todos',this)">Todos</div><div class="tab" onclick="fKR('KPI',this)">KPI</div><div class="tab" onclick="fKR('Projeto',this)">Projeto</div></div>
+    </div>
     <div class="card"><div id="krl">${ld()}</div></div>
   </div>`;
-  _krc=[];await lKR('todos');
+  await loadAll();lKR();
 }
-async function lKR(f){
-  if(!_krc.length){
-    const[krs,aokrs]=await Promise.all([apiG('key_results'),apiG('okr_area')]);
-    _krc=krs.map(k=>({...k,_on:aokrs.find(o=>o.id==k.okr_area_id)?.nome||'—',_area:aokrs.find(o=>o.id==k.okr_area_id)?.area||'—'}));
-  }
-  const list=f==='todos'?_krc:_krc.filter(k=>k.tipo===f);
+let _krFiltroTipo='todos';
+function fKR(f,el){_krFiltroTipo=f;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');lKR()}
+function lKR(){
+  const af=document.getElementById('fa-kr')?.value||'';
   const el=document.getElementById('krl');if(!el)return;
-  if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-mid)">Nenhum KR encontrado.</div>';return}
+  let list=_krs.map(k=>({...k,_on:_aokrs.find(o=>o.id==k.okr_area_id)?.nome||'—',_area:_aokrs.find(o=>o.id==k.okr_area_id)?.area||'—'}));
+  if(af)list=list.filter(k=>k._area===af);
+  if(_krFiltroTipo!=='todos')list=list.filter(k=>k.tipo===_krFiltroTipo);
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-mid)">Nenhum KR encontrado'+(af?' para '+af:'')+'.</div>';return}
   el.innerHTML=`<div style="overflow-x:auto"><table>
-    <thead><tr><th>Tipo</th><th>Nome</th><th>OKR Área</th><th>Indicador</th><th>Progresso</th><th>Saúde</th><th>Ação</th></tr></thead>
+    <thead><tr><th>Tipo</th><th>Nome</th><th>OKR Área</th><th>Área</th><th>Indicador</th><th>Progresso</th><th>Saúde</th><th>Ação</th></tr></thead>
     <tbody>${list.map(k=>`<tr>
       <td><span class="bdg ${k.tipo==='KPI'?'bb':'bor'}">${k.tipo}</span></td>
-      <td><div style="font-size:13px;font-weight:600">${k.nome}</div><div style="font-size:11px;color:var(--gray-mid)">👤 ${k.responsavel||'—'} · ${k._area}</div></td>
+      <td><div style="font-size:13px;font-weight:600">${k.nome}</div><div style="font-size:11px;color:var(--gray-mid)">👤 ${k.responsavel||'—'}</div></td>
       <td style="font-size:12px;color:var(--gray-mid)">${k._on}</td>
+      <td style="font-size:12px;color:var(--gray-mid)">${k._area}</td>
       <td style="font-size:12px">${k.tipo==='KPI'?`${k.indicador} · ${k.unidade} ${parseFloat(k.atual||0).toLocaleString('pt-BR')}/${parseFloat(k.meta||0).toLocaleString('pt-BR')}`:'Projeto'}</td>
       <td style="min-width:120px">${pb(k.progresso)}<div style="text-align:right;font-size:11px;font-weight:700;margin-top:2px">${k.progresso||0}%</div></td>
       <td>${hbdg(k.saude||'green')}</td>
@@ -620,21 +663,19 @@ async function lKR(f){
     </tr>`).join('')}</tbody>
   </table></div>`;
 }
-function fKR(f,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');_krc=[];lKR(f)}
-async function mNovoKR(){
-  const aokrs=await apiG('okr_area');
+function mNovoKR(){
   openM(`<div class="md"><div class="mh"><div class="mt">Novo Key Result</div><button class="mc2" onclick="closeM()">×</button></div>
   <div class="mbd">
-    <div class="fg"><label class="flb">OKR de Área *</label><select class="fsl" id="moa"><option value="">— Selecione —</option>${aokrs.map(o=>`<option value="${o.id}">[${o.area}] ${o.nome}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flb">OKR de Área *</label><select class="fsl" id="moa"><option value="">— Selecione —</option>${_aokrs.map(o=>`<option value="${o.id}">[${o.area}] ${o.nome}</option>`).join('')}</select></div>
     <div class="fg"><label class="flb">Nome do KR *</label><input class="fi" id="mn" placeholder="Ex: Receita Mensal Recorrente"/></div>
     <div class="fr">
       <div class="fg"><label class="flb">Tipo *</label><select class="fsl" id="mtp" onchange="document.getElementById('kpf').style.display=this.value==='KPI'?'block':'none'"><option value="KPI">KPI</option><option value="Projeto">Projeto</option></select></div>
-      <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2"/></div>
+      <div class="fg"><label class="flb">Responsável *</label><select class="fsl" id="mr2">${userOpts('')}</select></div>
     </div>
     <div id="kpf">
       <div class="fr">
         <div class="fg"><label class="flb">Tipo Indicador</label><select class="fsl" id="mind"><option>crescente</option><option>decrescente</option></select></div>
-        <div class="fg"><label class="flb">Unidade</label><input class="fi" id="mun" placeholder="R$, %, pts..."/></div>
+        <div class="fg"><label class="flb">Unidade (R$, %, pts...)</label><input class="fi" id="mun" placeholder="Ex: R$, %, pts"/></div>
       </div>
       <div class="fr"><div class="fg"><label class="flb">Valor Atual</label><input class="fi" id="mat" type="number" value="0"/></div><div class="fg"><label class="flb">Meta</label><input class="fi" id="mme" type="number" value="0"/></div></div>
     </div>
@@ -647,7 +688,8 @@ async function svKR(){
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiP('key_results',{okr_area_id:document.getElementById('moa').value,tipo:document.getElementById('mtp').value,nome:n,responsavel:document.getElementById('mr2').value,indicador:document.getElementById('mind')?.value||'crescente',unidade:document.getElementById('mun')?.value||'',atual:document.getElementById('mat')?.value||0,meta:document.getElementById('mme')?.value||0,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value});
-  if(r.ok){toast('KR criado! ✅');closeM();_krc=[];lKR('todos');}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('KR criado! ✅');closeM();_krs=await apiG('key_results');lKR();}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 function mUpdKR(k){
   openM(`<div class="md"><div class="mh"><div class="mt">✏️ Atualizar KR</div><button class="mc2" onclick="closeM()">×</button></div>
@@ -663,31 +705,44 @@ function mUpdKR(k){
 async function svUpdKR(k){
   const btn=document.getElementById('bskru');btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiU('key_results',{...k,atual:document.getElementById('mat')?.value||k.atual,meta:document.getElementById('mme')?.value||k.meta,saude:document.getElementById('ms').value});
-  if(r.ok){toast('KR atualizado! ✅');closeM();_krc=[];lKR('todos');}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('KR atualizado! ✅');closeM();_krs=await apiG('key_results');lKR();}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
-// ════════════════════════════════
-// INICIATIVAS
-// ════════════════════════════════
+// ══════════════════════════════════════
+// INICIATIVAS — filtro por área
+// ══════════════════════════════════════
 async function pInit(){
   document.getElementById('main').innerHTML=`
   <div class="ph"><div><div class="pt">Iniciativas</div><div class="ps">Ações operacionais dos KRs Projeto</div></div>
   <button class="btn bp" onclick="mNovaInit()">+ Nova Iniciativa</button></div>
-  <div class="cnt"><div id="il">${ld()}</div></div>`;
-  await lInit();
+  <div class="cnt">
+    <div class="fb"><span class="fl">🔍 Área:</span>
+      <select class="fs" id="fa-in" onchange="lInit()">${areaOpts('')}</select>
+    </div>
+    <div id="il">${ld()}</div>
+  </div>`;
+  await loadAll();lInit();
 }
-async function lInit(){
-  const[krs,inits]=await Promise.all([apiG('key_results'),apiG('iniciativas')]);
-  const proj=krs.filter(k=>k.tipo==='Projeto');
+function lInit(){
+  const af=document.getElementById('fa-in')?.value||'';
   const el=document.getElementById('il');if(!el)return;
-  if(!proj.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)">Nenhum KR Projeto cadastrado.</div>';return}
+  // Filtra KRs Projeto pela área
+  const proj=_krs.filter(k=>{
+    if(k.tipo!=='Projeto')return false;
+    if(!af)return true;
+    const aokr=_aokrs.find(o=>o.id==k.okr_area_id);
+    return aokr?.area===af;
+  });
+  if(!proj.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)">Nenhum KR Projeto'+(af?' para '+af:'')+' cadastrado.</div>';return}
   el.innerHTML=proj.map(kr=>{
-    const mine=inits.filter(i=>i.kr_id==kr.id);
+    const mine=_inits.filter(i=>i.kr_id==kr.id);
     const act=mine.filter(i=>i.status!=='Cancelada');
     const w=act.length?Math.round(100/act.length):0;
     const pct=act.length?Math.round(act.reduce((s,i)=>s+({'Concluída':1,'Concluída com atraso':1,'Em andamento':.5,'Não iniciada':0,'Pausada':0,'Cancelada':0}[i.status]||0),0)/act.length*100):0;
+    const aokr=_aokrs.find(o=>o.id==kr.okr_area_id);
     return`<div class="card" style="margin-bottom:16px">
-      <div class="ch"><div><div class="ct">🎯 ${kr.nome}</div><div style="font-size:11px;color:var(--gray-mid);margin-top:2px">${act.length} ativas · peso: ${w}% cada</div></div>
+      <div class="ch"><div><div class="ct">🎯 ${kr.nome}</div><div style="font-size:11px;color:var(--gray-mid);margin-top:2px">${aokr?.area||'—'} · ${act.length} ativas · peso: ${w}% cada</div></div>
         <div style="display:flex;align-items:center;gap:12px"><div style="min-width:160px">${pb(pct)}<div style="text-align:right;font-size:11px;font-weight:700;margin-top:2px">${pct}%</div></div>${hbdg(kr.saude||'green')}</div>
       </div>
       <div class="cb" style="padding:0"><table>
@@ -704,14 +759,14 @@ async function lInit(){
     </div>`;
   }).join('');
 }
-async function mNovaInit(){
-  const krs=(await apiG('key_results')).filter(k=>k.tipo==='Projeto');
+function mNovaInit(){
+  const proj=_krs.filter(k=>k.tipo==='Projeto');
   openM(`<div class="md"><div class="mh"><div class="mt">Nova Iniciativa</div><button class="mc2" onclick="closeM()">×</button></div>
   <div class="mbd">
-    <div class="fg"><label class="flb">KR Projeto *</label><select class="fsl" id="mk"><option value="">— Selecione —</option>${krs.map(k=>`<option value="${k.id}">${k.nome}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flb">KR Projeto *</label><select class="fsl" id="mk"><option value="">— Selecione —</option>${proj.map(k=>`<option value="${k.id}">${k.nome}</option>`).join('')}</select></div>
     <div class="fg"><label class="flb">Nome *</label><input class="fi" id="mn" placeholder="Nome da iniciativa"/></div>
     <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="md2" placeholder="Descreva a iniciativa..."></textarea></div>
-    <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mresp" placeholder="Nome do responsável"/></div>
+    <div class="fg"><label class="flb">Responsável *</label><select class="fsl" id="mresp">${userOpts('')}</select></div>
     <div class="fr"><div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div><div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div></div>
     <div class="fr">
       <div class="fg"><label class="flb">Status inicial</label><select class="fsl" id="mst">${STATUS_INIT.map(s=>`<option>${s}</option>`).join('')}</select></div>
@@ -725,7 +780,8 @@ async function svInit(){
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiP('iniciativas',{kr_id:document.getElementById('mk').value,nome:n,descricao:document.getElementById('md2').value,responsavel:document.getElementById('mresp').value,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value,status:document.getElementById('mst').value,comentario:document.getElementById('mcom').value});
-  if(r.ok){toast('Iniciativa criada! ✅');closeM();lInit();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('Iniciativa criada! ✅');closeM();_inits=await apiG('iniciativas');lInit();}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 function mUpdInit(i){
   openM(`<div class="md"><div class="mh"><div class="mt">✏️ Atualizar Iniciativa</div><button class="mc2" onclick="closeM()">×</button></div>
@@ -739,37 +795,32 @@ function mUpdInit(i){
 async function svUpdInit(i){
   const btn=document.getElementById('bsinu');btn.disabled=true;btn.textContent='Salvando...';
   const r=await apiU('iniciativas',{...i,status:document.getElementById('mst').value,comentario:document.getElementById('mcom').value});
-  if(r.ok){toast('Iniciativa atualizada! ✅');closeM();lInit();}else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  if(r.ok){toast('Iniciativa atualizada! ✅');closeM();_inits=await apiG('iniciativas');lInit();}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
-// ════════════════════════════════
-// MANUTENÇÃO — com snapshots mensais
-// ════════════════════════════════
+// ══════════════════════════════════════
+// MANUTENÇÃO — snapshot único para tudo
+// ══════════════════════════════════════
 async function pMaint(){
-  const areas=await apiG('areas');
-  const now=new Date();
   document.getElementById('main').innerHTML=`
-  <div class="ph"><div><div class="pt">Atualizar Status</div><div class="ps">Informe o desempenho — os dados são gravados por mês de referência</div></div></div>
+  <div class="ph"><div><div class="pt">Atualizar Status</div><div class="ps">Informe o desempenho mensal — dados gravados por mês de referência</div></div></div>
   <div class="cnt">
-    <div class="snap-box" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-      <div><div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">📅 Mês de Referência</div>
+    <div class="fb" style="align-items:flex-end;gap:16px;flex-wrap:wrap">
+      <div><div class="fl" style="margin-bottom:5px">📅 Mês de Referência *</div>
         <div style="display:flex;gap:8px">
-          <select class="fsl" id="mfm" style="width:auto">${mesOpts(now.getMonth()+1)}</select>
-          <select class="fsl" id="mfa2" style="width:auto">${anoOpts()}</select>
+          <select class="fs" id="mfm">${mesOpts(new Date().getMonth()+1)}</select>
+          <select class="fs" id="mfa2">${anoOpts()}</select>
         </div>
       </div>
-      <div class="fd"></div>
-      <div><div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🏬 Área</div>
-        <select class="fsl" id="mfar" style="width:auto" onchange="lMaint()">
-          <option value="">Todas</option>
-          ${areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')}
-        </select>
+      <div><div class="fl" style="margin-bottom:5px">🏬 Área</div>
+        <select class="fs" id="mfar" onchange="lMaint()"><option value="">Todas</option>${_areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')}</select>
       </div>
-      <button class="btn bp bsm" style="margin-top:18px" onclick="lMaint()">🔍 Carregar</button>
+      <button class="btn bg bsm" onclick="lMaint()">🔍 Carregar</button>
     </div>
     <div id="mc4">${ld()}</div>
   </div>`;
-  await lMaint();
+  await loadAll();lMaint();
 }
 
 async function lMaint(){
@@ -780,48 +831,38 @@ async function lMaint(){
   const area=document.getElementById('mfar')?.value||'';
   const mesLabel=`${MOS[mes-1]}/${ano}`;
 
-  const[krs,inits,aokrs]=await Promise.all([apiG('key_results'),apiG('iniciativas'),apiG('okr_area')]);
+  // Recarrega dados frescos
+  [_krs,_inits,_aokrs,_snaps]=await Promise.all([apiG('key_results'),apiG('iniciativas'),apiG('okr_area'),apiG('snapshots')]);
 
-  // Filtra por área se selecionada
-  const kpis=krs.filter(k=>{
+  const kpis=_krs.filter(k=>{
     if(k.tipo!=='KPI')return false;
     if(!area)return true;
-    const aokr=aokrs.find(o=>o.id==k.okr_area_id);
-    return aokr?.area===area;
+    return _aokrs.find(o=>o.id==k.okr_area_id)?.area===area;
   });
-  const proj=krs.filter(k=>{
+  const proj=_krs.filter(k=>{
     if(k.tipo!=='Projeto')return false;
     if(!area)return true;
-    const aokr=aokrs.find(o=>o.id==k.okr_area_id);
-    return aokr?.area===area;
+    return _aokrs.find(o=>o.id==k.okr_area_id)?.area===area;
   });
-  const ai=proj.flatMap(kr=>inits.filter(i=>i.kr_id==kr.id));
+  const ai=proj.flatMap(kr=>_inits.filter(i=>i.kr_id==kr.id));
 
   el.innerHTML=`
-  <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#854d0e">
-    ⚠️ Os dados abaixo serão gravados como <strong>snapshot de ${mesLabel}</strong>. O status atual do registro não será alterado — apenas o histórico mensal é registrado.
-  </div>
-  <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--gray-dark)">📊 KRs KPI — Snapshot de ${mesLabel}</div>
+  <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--gray-dark)">📊 KRs KPI — ${mesLabel}</div>
   ${kpis.length?kpis.map(k=>`<div class="card" style="margin-bottom:12px">
-    <div class="ch"><div><div class="ct">${k.nome}</div><div style="font-size:11px;color:var(--gray-mid)">${k.indicador} · Meta: ${k.unidade} ${parseFloat(k.meta||0).toLocaleString('pt-BR')} · Atual cadastrado: ${k.unidade} ${parseFloat(k.atual||0).toLocaleString('pt-BR')}</div></div>${hbdg(k.saude||'green')}</div>
+    <div class="ch"><div><div class="ct">${k.nome}</div><div style="font-size:11px;color:var(--gray-mid)">${k.indicador} · Meta: ${k.unidade} ${parseFloat(k.meta||0).toLocaleString('pt-BR')} · Atual: ${k.unidade} ${parseFloat(k.atual||0).toLocaleString('pt-BR')}</div></div>${hbdg(k.saude||'green')}</div>
     <div class="cb">
       <div class="fr3">
-        <div class="fg"><label class="flb">Valor em ${mesLabel}</label><input class="fi" type="number" id="kc-${k.id}" value="${k.atual||0}" placeholder="Valor do mês"/></div>
+        <div class="fg"><label class="flb">Valor em ${mesLabel}</label><input class="fi" type="number" id="kc-${k.id}" value="${k.atual||0}"/></div>
         <div class="fg"><label class="flb">Meta</label><input class="fi" type="number" id="km-${k.id}" value="${k.meta||0}"/></div>
         <div class="fg"><label class="flb">Saúde em ${mesLabel}</label>
-          <select class="fsl" id="ks-${k.id}">
-            <option value="green"${k.saude==='green'?' selected':''}>✅ No prazo</option>
-            <option value="yellow"${k.saude==='yellow'?' selected':''}>⚠️ Atenção</option>
-            <option value="red"${k.saude==='red'?' selected':''}>🔴 Em risco</option>
-          </select>
+          <select class="fsl" id="ks-${k.id}"><option value="green"${k.saude==='green'?' selected':''}>✅ No prazo</option><option value="yellow"${k.saude==='yellow'?' selected':''}>⚠️ Atenção</option><option value="red"${k.saude==='red'?' selected':''}>🔴 Em risco</option></select>
         </div>
       </div>
       <div class="fg"><label class="flb">Comentário</label><input class="fi" id="kcom-${k.id}" placeholder="Observações do mês..."/></div>
-      <div style="text-align:right"><button class="btn bp bsm" onclick='sMKPI(${JSON.stringify(k).replace(/"/g,"&quot;")},${mes},${ano})'>💾 Gravar snapshot</button></div>
     </div>
-  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid);margin-bottom:16px">Nenhum KR KPI para esta área.</div>'}
+  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid);margin-bottom:16px">Nenhum KR KPI para esta seleção.</div>'}
 
-  <div style="font-size:13px;font-weight:700;margin:16px 0 12px;color:var(--gray-dark)">🎯 Iniciativas — Snapshot de ${mesLabel}</div>
+  <div style="font-size:13px;font-weight:700;margin:16px 0 12px;color:var(--gray-dark)">🎯 Iniciativas — ${mesLabel}</div>
   ${ai.length?ai.map(i=>`<div class="card" style="margin-bottom:10px">
     <div class="ch"><div><div class="ct">${i.nome}</div><div style="font-size:11px;color:var(--gray-mid)">Prazo: ${i.data_fim||'—'} · Status atual: ${i.status||'Não iniciada'}</div></div>${bdg(i.status||'Não iniciada')}</div>
     <div class="cb">
@@ -831,31 +872,52 @@ async function lMaint(){
         </div>
         <div class="fg"><label class="flb">Comentário</label><input class="fi" id="ic-${i.id}" value="${esc(i.comentario||'')}" placeholder="O que aconteceu em ${mesLabel}?"/></div>
       </div>
-      <div style="text-align:right"><button class="btn bp bsm" onclick='sMInit(${JSON.stringify(i).replace(/"/g,"&quot;")},${mes},${ano})'>💾 Gravar snapshot</button></div>
     </div>
-  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid)">Nenhuma iniciativa para esta área.</div>'}`;
+  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid)">Nenhuma iniciativa para esta seleção.</div>'}
+
+  ${(kpis.length||ai.length)?`<div style="margin-top:20px;padding-top:16px;border-top:2px solid var(--border);display:flex;justify-content:flex-end">
+    <button class="btn bp" style="font-size:14px;padding:10px 24px" onclick="gravarTodosSnapshots(${JSON.stringify(kpis).replace(/"/g,'&quot;')},${JSON.stringify(ai).replace(/"/g,'&quot;')},${mes},${ano})">
+      💾 Gravar todos os snapshots de ${mesLabel}
+    </button>
+  </div>`:''}`;
 }
 
-async function sMKPI(k,mes,ano){
-  const atual=parseFloat(document.getElementById(`kc-${k.id}`).value)||0;
-  const meta=parseFloat(document.getElementById(`km-${k.id}`).value)||1;
-  const saude=document.getElementById(`ks-${k.id}`).value;
-  const com=document.getElementById(`kcom-${k.id}`).value;
-  const prog=k.indicador==='crescente'?Math.min(Math.round((atual/meta)*100),100):Math.max(Math.round((1-atual/meta)*100),0);
-  const r=await apiSnap({tipo:'kr',item_id:k.id,mes,ano,valor_atual:atual,meta,saude,pct:prog,comentario:com,status:''});
-  if(r.ok)toast(`Snapshot KPI gravado para ${MOS[mes-1]}/${ano}! ✅`);else toast('Erro: '+(r.erro||''),'err');
-}
-async function sMInit(i,mes,ano){
-  const st=document.getElementById(`is-${i.id}`).value;
-  const com=document.getElementById(`ic-${i.id}`).value;
-  const pctMap={'Concluída':100,'Concluída com atraso':100,'Em andamento':50,'Não iniciada':0,'Pausada':0,'Cancelada':0};
-  const r=await apiSnap({tipo:'iniciativa',item_id:i.id,mes,ano,status:st,pct:pctMap[st]||0,comentario:com,valor_atual:'',meta:'',saude:'green'});
-  if(r.ok)toast(`Snapshot gravado para ${MOS[mes-1]}/${ano}! ✅`);else toast('Erro: '+(r.erro||''),'err');
+async function gravarTodosSnapshots(kpis,inits,mes,ano){
+  const btn=event.target;btn.disabled=true;btn.textContent='Gravando...';
+  const mesLabel=`${MOS[mes-1]}/${ano}`;
+  let ok=0,erros=0;
+
+  // Grava KPIs
+  for(const k of kpis){
+    const atual=parseFloat(document.getElementById(`kc-${k.id}`)?.value)||0;
+    const meta=parseFloat(document.getElementById(`km-${k.id}`)?.value)||1;
+    const saude=document.getElementById(`ks-${k.id}`)?.value||'green';
+    const com=document.getElementById(`kcom-${k.id}`)?.value||'';
+    const prog=k.indicador==='crescente'?Math.min(Math.round((atual/meta)*100),100):Math.max(Math.round((1-atual/meta)*100),0);
+    const r=await apiSnap({tipo:'kr',item_id:k.id,mes,ano,valor_atual:atual,meta,saude,pct:prog,comentario:com,status:''});
+    r.ok?ok++:erros++;
+  }
+
+  // Grava iniciativas
+  for(const i of inits){
+    const st=document.getElementById(`is-${i.id}`)?.value||i.status;
+    const com=document.getElementById(`ic-${i.id}`)?.value||'';
+    const pctMap={'Concluída':100,'Concluída com atraso':100,'Em andamento':50,'Não iniciada':0,'Pausada':0,'Cancelada':0};
+    const r=await apiSnap({tipo:'iniciativa',item_id:i.id,mes,ano,status:st,pct:pctMap[st]||0,comentario:com,valor_atual:'',meta:'',saude:'green'});
+    r.ok?ok++:erros++;
+  }
+
+  if(erros===0){
+    toast(`✅ ${ok} snapshots gravados para ${mesLabel}!`);
+  }else{
+    toast(`⚠️ ${ok} gravados, ${erros} com erro.`,'err');
+  }
+  btn.disabled=false;btn.textContent=`💾 Gravar todos os snapshots de ${mesLabel}`;
 }
 
-// ════════════════════════════════
+// ══════════════════════════════════════
 // APROVAÇÕES
-// ════════════════════════════════
+// ══════════════════════════════════════
 async function pApprov(){
   document.getElementById('main').innerHTML=`
   <div class="ph"><div><div class="pt">Aprovações</div><div class="ps">Fluxo de aprovação de OKRs e KRs</div></div></div>
@@ -889,7 +951,8 @@ async function dApprov(id,dec,a){
   if(r.ok){toast(`${dec}! ✅`);pApprov();}else toast('Erro: '+(r.erro||''),'err');
 }
 
-go('dashboard');
+// Init
+loadAll().then(()=>go('dashboard'));
 </script>
 </body>
 </html>
