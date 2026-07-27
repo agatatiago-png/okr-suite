@@ -50,11 +50,9 @@ main{margin-left:var(--nav-w);flex:1;background:#f0f2f5;min-height:100vh}
 .mc{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
 .ml{font-size:11px;color:var(--gray-mid);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
 .mv{font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;color:var(--gray-dark)}
-.msub{font-size:11px;color:var(--gray-mid);margin-top:5px}
 .fb{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .fl{font-size:12px;font-weight:600;color:var(--gray-mid);white-space:nowrap}
 .fs{background:var(--gray-lighter);border:1px solid var(--border2);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--gray-dark);cursor:pointer;font-family:inherit}
-.fs:focus{outline:2px solid var(--orange);outline-offset:1px}
 .fd{width:1px;height:20px;background:var(--border2)}
 .pb{height:7px;background:#eee;border-radius:4px;overflow:hidden}
 .pf{height:100%;border-radius:4px;transition:width .4s}
@@ -65,14 +63,12 @@ main{margin-left:var(--nav-w);flex:1;background:#f0f2f5;min-height:100vh}
 .bor{background:var(--orange-light);color:#92400e}.bgr{background:#f3f4f6;color:#374151}
 .bdot{width:5px;height:5px;border-radius:50%;background:currentColor}
 .hd{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.hg{background:var(--success)}.hy{background:var(--warning)}.hr2{background:var(--danger)}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{padding:9px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);background:var(--gray-lighter)}
 td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--gray-dark);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#fafbfc}
-.tds{font-size:11px;color:var(--gray-mid);margin-top:2px}
-.tabs{display:flex;background:#edf0f5;border-radius:8px;padding:3px;margin-bottom:18px;width:fit-content;flex-wrap:wrap}
+.tabs{display:flex;background:#edf0f5;border-radius:8px;padding:3px;margin-bottom:18px;width:fit-content}
 .tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--gray-mid);transition:all .15s;white-space:nowrap}
 .tab.active{background:var(--white);color:var(--orange);box-shadow:0 1px 3px rgba(0,0,0,.1)}
 .fg{margin-bottom:14px}
@@ -109,14 +105,10 @@ tr:hover td{background:#fafbfc}
 .toast.ok{background:var(--success)}.toast.err{background:var(--danger)}
 .uc{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s}
 .uc:hover{border-color:var(--orange);background:var(--orange-light)}
-.emp{text-align:center;padding:40px;color:var(--gray-mid)}
-.podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin-bottom:16px}
-.podium-col{display:flex;flex-direction:column;align-items:center;width:120px}
-.podium-step{border-radius:8px 8px 0 0;width:100%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:rgba(255,255,255,.8)}
-.rrow{background:var(--white);border:1px solid var(--border);border-radius:9px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.rnum{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
 .area-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s}
 .area-card:hover{border-color:var(--orange);background:var(--orange-light)}
+.podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin-bottom:16px}
+.rrow{background:var(--white);border:1px solid var(--border);border-radius:9px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:#d1d5de;border-radius:3px}
 </style>
@@ -140,9 +132,9 @@ tr:hover td{background:#fafbfc}
   <div class="sec">Admin</div>
   <div class="nm" onclick="go('approvals')"><span class="nicon">✔</span> Aprovações <span class="nbadge" id="bc">0</span></div>
   <div class="nb">
-    <div class="nu" onclick="go('usuarios')">
-      <div class="nav-av" id="nav-av">A</div>
-      <div><div class="nav-un" id="nav-nm">Admin</div><div class="nav-ur" id="nav-rl">Administrador</div></div>
+    <div class="nu">
+      <div class="nav-av">A</div>
+      <div><div class="nav-un">Admin</div><div class="nav-ur">Administrador</div></div>
     </div>
   </div>
 </nav>
@@ -150,44 +142,38 @@ tr:hover td{background:#fafbfc}
 <div id="mr"></div>
 <div class="toast" id="toast"></div>
 <script>
-// ── CONFIG ──
-const GAS = 'https://script.google.com/macros/s/AKfycbwnAdAcSaTnD6BxKYBxgsRwZqRbi1oSZsEZ00qe7m7cD4mpe8NYhojDiLt3F3dNOq8_wQ/exec';
-const MOS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const CORS = ['#e8621a','#1a4fa0','#16a34a','#7c3aed','#0891b2','#dc2626','#d97706','#0d9488'];
+const GAS='https://script.google.com/macros/s/AKfycbwnAdAcSaTnD6BxKYBxgsRwZqRbi1oSZsEZ00qe7m7cD4mpe8NYhojDiLt3F3dNOq8_wQ/exec';
+const MOS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const CORS=['#e8621a','#1a4fa0','#16a34a','#7c3aed','#0891b2','#dc2626','#d97706','#0d9488'];
 
 // ── TOAST ──
-function toast(msg, t='ok'){
+function toast(msg,t='ok'){
   const e=document.getElementById('toast');
   e.textContent=msg;e.className=`toast show ${t}`;
   setTimeout(()=>e.className='toast',3500);
 }
 
-// ── API via Google Apps Script ──
+// ── API — tudo via GET para evitar CORS ──
 async function apiG(aba){
   try{
-    const url=`${GAS}?acao=listar&aba=${aba}`;
-    const r=await fetch(url);
+    const r=await fetch(`${GAS}?acao=listar&aba=${aba}`);
     const j=await r.json();
     return j.dados||[];
   }catch(e){console.error('GET erro:',e);return[];}
 }
 
-async function apiP(aba, body){
+async function apiP(aba,body){
   try{
-    const r=await fetch(GAS,{
-      method:'POST',
-      body:JSON.stringify({acao:'criar',aba,body})
-    });
+    const enc=encodeURIComponent(JSON.stringify(body));
+    const r=await fetch(`${GAS}?acao=criar&aba=${aba}&body=${enc}`);
     return await r.json();
   }catch(e){return{ok:false,erro:e.message};}
 }
 
-async function apiU(aba, body){
+async function apiU(aba,body){
   try{
-    const r=await fetch(GAS,{
-      method:'POST',
-      body:JSON.stringify({acao:'atualizar',aba,body})
-    });
+    const enc=encodeURIComponent(JSON.stringify(body));
+    const r=await fetch(`${GAS}?acao=atualizar&aba=${aba}&body=${enc}`);
     return await r.json();
   }catch(e){return{ok:false,erro:e.message};}
 }
@@ -196,9 +182,9 @@ async function apiU(aba, body){
 function hc(p){p=parseInt(p)||0;return p>=60?'pg':p>=40?'po':'pr'}
 function pb(p){p=parseInt(p)||0;return`<div class="pb"><div class="pf ${hc(p)}" style="width:${Math.min(p,100)}%"></div></div>`}
 function bdg(t){
-  const m={'Publicado':'bg2','Pendente':'by','Em andamento':'bb','Concluída':'bg2',
-    'Não iniciada':'bgr','Cancelada':'br','Aprovado':'bg2','Reprovado':'br',
-    'Concluída com atraso':'by','ADM':'bor','CEO':'bb','GESTOR':'bg2','sim':'bg2','não':'br'};
+  const m={'Publicado':'bg2','Pendente':'by','Em andamento':'bb','Concluída':'bg2','Não iniciada':'bgr',
+    'Cancelada':'br','Aprovado':'bg2','Reprovado':'br','Concluída com atraso':'by',
+    'ADM':'bor','CEO':'bb','GESTOR':'bg2','sim':'bg2'};
   return`<span class="bdg ${m[t]||'bgr'}">${t}</span>`;
 }
 function hbdg(h){
@@ -210,7 +196,7 @@ function ld(){return`<div class="ld"><div class="sp"></div> Carregando dados...<
 function ini(n){return(n||'?').split(' ').map(x=>x[0]||'').slice(0,2).join('').toUpperCase()||'?'}
 function corN(n){let h=0;for(let c of(n||''))h=(h*31+c.charCodeAt(0))%CORS.length;return CORS[h]}
 function av(n,s=36){return`<div style="width:${s}px;height:${s}px;border-radius:50%;background:${corN(n)};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*.3)}px;font-weight:800;color:#fff;flex-shrink:0">${ini(n)}</div>`}
-function esc(s){return String(s||'').replace(/'/g,"&#39;").replace(/"/g,'&quot;')}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;')}
 
 // ── NAV ──
 function go(p){
@@ -218,10 +204,9 @@ function go(p){
   const idx={dashboard:0,ranking:1,areas:3,usuarios:4,'company-okrs':6,'area-okrs':7,'key-results':8,initiatives:9,manutencao:11,approvals:13};
   const items=document.querySelectorAll('.nm');
   if(items[idx[p]])items[idx[p]].classList.add('active');
-  const fns={dashboard:pDash,ranking:pRank,areas:pAreas,usuarios:pUsers,
+  ({dashboard:pDash,ranking:pRank,areas:pAreas,usuarios:pUsers,
     'company-okrs':pCOkr,'area-okrs':pAOkr,'key-results':pKR,
-    initiatives:pInit,manutencao:pMaint,approvals:pApprov};
-  if(fns[p])fns[p]();
+    initiatives:pInit,manutencao:pMaint,approvals:pApprov})[p]?.();
 }
 function openM(h){document.getElementById('mr').innerHTML=`<div class="mo" onclick="if(event.target===this)closeM()">${h}</div>`}
 function closeM(){document.getElementById('mr').innerHTML=''}
@@ -244,11 +229,8 @@ async function pDash(){
   </div>`;
   await lDash();
 }
-
 async function lDash(){
-  const[okrs,krs,aokrs,aprov]=await Promise.all([
-    apiG('okr_companhia'),apiG('key_results'),apiG('okr_area'),apiG('aprovacoes')
-  ]);
+  const[okrs,krs,aokrs,aprov]=await Promise.all([apiG('okr_companhia'),apiG('key_results'),apiG('okr_area'),apiG('aprovacoes')]);
   const fa=document.getElementById('fa');
   const areas=[...new Set(aokrs.map(o=>o.area).filter(Boolean))];
   if(fa&&fa.options.length===1)areas.forEach(a=>{fa.innerHTML+=`<option value="${a}">${a}</option>`});
@@ -265,7 +247,7 @@ async function lDash(){
     <div class="mc"><div style="font-size:28px;margin-bottom:8px">🎯</div><div class="ml">OKRs Ativos</div><div class="mv">${list.length}</div></div>
     <div class="mc"><div style="font-size:28px;margin-bottom:8px">⚠️</div><div class="ml">KRs em Risco</div><div class="mv" style="color:var(--danger)">${risco}</div></div>
     <div class="mc"><div style="font-size:28px;margin-bottom:8px">🕐</div><div class="ml">Aprovações Pendentes</div><div class="mv" style="color:var(--warning)">${pend}</div>
-      <div class="msub" style="margin-top:6px"><button class="btn bg bsm" onclick="go('approvals')">Ver →</button></div>
+      <div style="margin-top:6px"><button class="btn bg bsm" onclick="go('approvals')">Ver →</button></div>
     </div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -273,10 +255,10 @@ async function lDash(){
       <div style="display:flex;flex-direction:column;gap:10px">
         ${list.slice(0,5).map(o=>`
         <div style="display:flex;align-items:center;gap:10px">
-          <div class="hd h${(o.saude||'g')[0]==='g'?'g':(o.saude||'g')[0]==='y'?'y':'r2'}"></div>
+          <div class="hd" style="background:${o.saude==='green'?'var(--success)':o.saude==='yellow'?'var(--warning)':'var(--danger)'}"></div>
           <div style="flex:1;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.nome}</div>
           <div style="font-size:13px;font-weight:800;color:${parseInt(o.progresso)>=60?'var(--success)':parseInt(o.progresso)>=40?'var(--warning)':'var(--danger)'}">${o.progresso||0}%</div>
-        </div>`).join('')||'<div class="emp">Nenhum OKR cadastrado ainda</div>'}
+        </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--gray-mid)">Nenhum OKR cadastrado ainda</div>'}
       </div>
     </div></div>
     <div class="card"><div class="ch"><div class="ct">⚠️ KRs com Atenção</div></div><div class="cb">
@@ -286,7 +268,7 @@ async function lDash(){
           <div style="display:flex;justify-content:space-between;margin-bottom:5px">
             <div style="font-size:12px;font-weight:600">${k.nome}</div>${hbdg(k.saude)}
           </div>${pb(k.progresso)}
-        </div>`).join('')||'<div class="emp">Todos os KRs no prazo ✅</div>'}
+        </div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--gray-mid)">Todos os KRs no prazo ✅</div>'}
       </div>
     </div></div>
   </div>`;
@@ -307,7 +289,6 @@ async function pRank(){
   </div>`;
   await lRank();
 }
-
 async function lRank(){
   const aokrs=await apiG('okr_area');
   const areas=[...new Set(aokrs.map(o=>o.area).filter(Boolean))];
@@ -317,24 +298,24 @@ async function lRank(){
     return{area,pct,resp:list[0]?.responsavel||area};
   }).sort((a,b)=>b.pct-a.pct);
   const el=document.getElementById('rc');if(!el)return;
-  if(!dados.length){el.innerHTML='<div class="emp">Nenhum dado de área disponível ainda.</div>';return}
+  if(!dados.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-mid)">Nenhum dado de área disponível ainda.</div>';return}
   const tr=['🥇','🥈','🥉'];
   const top3=dados.slice(0,3);
   const po=[top3[1],top3[0],top3[2]].filter(Boolean);
   const sh=[58,80,42];const sc=['var(--blue)','var(--orange)','#6b7280'];const ri=[1,0,2];
-  el.innerHTML=`<div class="card" style="margin-bottom:20px"><div class="ch"><div class="ct">🏆 Pódio</div></div><div class="cb">
+  el.innerHTML=`<div class="card"><div class="ch"><div class="ct">🏆 Pódio</div></div><div class="cb">
     <div class="podium-wrap">
-      ${po.map((u,i)=>`<div class="podium-col">
+      ${po.map((u,i)=>`<div style="display:flex;flex-direction:column;align-items:center;width:120px">
         <div style="font-size:20px;text-align:center;margin-bottom:4px">${tr[ri[i]]}</div>
         ${av(u.resp,54)}
         <div style="font-size:12px;font-weight:700;text-align:center;margin-top:5px">${u.area}</div>
         <div style="font-size:18px;font-weight:800;text-align:center;color:${ri[i]===0?'var(--orange)':ri[i]===1?'var(--blue)':'var(--gray-mid)'};margin:4px 0 8px">${u.pct}%</div>
-        <div class="podium-step" style="height:${sh[i]}px;background:${sc[i]}">${ri[i]+1}º</div>
+        <div style="border-radius:8px 8px 0 0;width:100%;height:${sh[i]}px;background:${sc[i]};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:rgba(255,255,255,.8)">${ri[i]+1}º</div>
       </div>`).join('')}
     </div>
     <div style="height:1px;background:var(--border);margin:4px 0 16px"></div>
     ${dados.map((u,i)=>`<div class="rrow">
-      <div class="rnum" style="background:${i===0?'var(--orange)':i===1?'var(--blue)':i===2?'#6b7280':'var(--gray-lighter)'};color:${i<3?'#fff':'var(--gray-mid)'}">${i+1}</div>
+      <div style="width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:${i===0?'var(--orange)':i===1?'var(--blue)':i===2?'#6b7280':'var(--gray-lighter)'};color:${i<3?'#fff':'var(--gray-mid)'};flex-shrink:0">${i+1}</div>
       ${av(u.resp,36)}
       <div style="flex:1"><div style="font-size:13px;font-weight:700">${u.area}</div></div>
       <div style="min-width:150px">${pb(u.pct)}</div>
@@ -349,19 +330,16 @@ async function lRank(){
 // ════════════════════════════════
 async function pAreas(){
   document.getElementById('main').innerHTML=`
-  <div class="ph">
-    <div><div class="pt">Áreas</div><div class="ps">Cadastro de áreas e departamentos</div></div>
-    <button class="btn bp" onclick="mNovaArea()">+ Nova Área</button>
-  </div>
+  <div class="ph"><div><div class="pt">Áreas</div><div class="ps">Cadastro de áreas e departamentos</div></div>
+  <button class="btn bp" onclick="mNovaArea()">+ Nova Área</button></div>
   <div class="cnt"><div id="al2">${ld()}</div></div>`;
   await lAreas();
 }
-
 async function lAreas(){
   const areas=await apiG('areas');
   const el=document.getElementById('al2');if(!el)return;
-  if(!areas.length){
-    el.innerHTML='<div class="emp" style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px"><div style="font-size:32px;margin-bottom:10px">🏬</div><div style="font-size:14px;font-weight:600;margin-bottom:6px">Nenhuma área cadastrada</div><div style="font-size:13px;color:var(--gray-mid)">Clique em "+ Nova Área" para começar</div></div>';
+  if(!areas.filter(a=>a.ativo!=='não').length){
+    el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)"><div style="font-size:32px;margin-bottom:10px">🏬</div><div style="font-size:14px;font-weight:600;margin-bottom:6px">Nenhuma área cadastrada</div><div style="font-size:13px">Clique em "+ Nova Área" para começar</div></div>';
     return;
   }
   el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">
@@ -376,69 +354,52 @@ async function lAreas(){
     </div>`).join('')}
   </div>`;
 }
-
 function mNovaArea(){
   openM(`<div class="md">
     <div class="mh"><div class="mt">Nova Área</div><button class="mc2" onclick="closeM()">×</button></div>
     <div class="mbd">
-      <div class="fg"><label class="flb">Nome da Área</label><input class="fi" id="an" placeholder="Ex: Marketing, Engenharia, Financeiro..."/></div>
-      <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="ad" placeholder="Descreva as responsabilidades da área..."></textarea></div>
-      <div class="fg"><label class="flb">Responsável</label><input class="fi" id="ar" placeholder="Nome do gestor responsável"/></div>
+      <div class="fg"><label class="flb">Nome da Área *</label><input class="fi" id="an" placeholder="Ex: Marketing, Financeiro..."/></div>
+      <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="ad" placeholder="Responsabilidades da área..."></textarea></div>
+      <div class="fg"><label class="flb">Responsável</label><input class="fi" id="ar" placeholder="Nome do gestor"/></div>
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="btn-sv-area" onclick="svArea()">💾 Salvar</button>
+      <button class="btn bp" id="bsa" onclick="svArea()">💾 Salvar</button>
     </div>
   </div>`);
 }
-
 function mEditArea(a){
   openM(`<div class="md">
-    <div class="mh"><div class="mt">Editar Área — ${a.nome}</div><button class="mc2" onclick="closeM()">×</button></div>
+    <div class="mh"><div class="mt">Editar — ${a.nome}</div><button class="mc2" onclick="closeM()">×</button></div>
     <div class="mbd">
-      <div class="fg"><label class="flb">Nome da Área</label><input class="fi" id="an" value="${esc(a.nome)}"/></div>
+      <div class="fg"><label class="flb">Nome da Área *</label><input class="fi" id="an" value="${esc(a.nome)}"/></div>
       <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="ad">${esc(a.descricao||'')}</textarea></div>
       <div class="fg"><label class="flb">Responsável</label><input class="fi" id="ar" value="${esc(a.responsavel||'')}"/></div>
       <div class="fg"><label class="flb">Status</label>
-        <select class="fsl" id="aativo">
-          <option value="sim"${a.ativo==='sim'?' selected':''}>Ativa</option>
-          <option value="não"${a.ativo==='não'?' selected':''}>Inativa</option>
-        </select>
+        <select class="fsl" id="aativo"><option value="sim"${a.ativo==='sim'?' selected':''}>Ativa</option><option value="não"${a.ativo==='não'?' selected':''}>Inativa</option></select>
       </div>
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="btn-sv-area" onclick='svEditArea(${JSON.stringify(a).replace(/"/g,"&quot;")})'>💾 Salvar</button>
+      <button class="btn bp" id="bsa" onclick='svEditArea(${JSON.stringify(a).replace(/"/g,"&quot;")})'>💾 Salvar</button>
     </div>
   </div>`);
 }
-
 async function svArea(){
-  const btn=document.getElementById('btn-sv-area');
+  const btn=document.getElementById('bsa');
   const n=document.getElementById('an').value.trim();
   if(!n){toast('Informe o nome da área','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
-  const r=await apiP('areas',{
-    nome:n,
-    descricao:document.getElementById('ad').value,
-    responsavel:document.getElementById('ar').value
-  });
-  if(r.ok){toast('Área criada com sucesso! ✅');closeM();lAreas();}
-  else{toast('Erro ao salvar: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  const r=await apiP('areas',{nome:n,descricao:document.getElementById('ad').value,responsavel:document.getElementById('ar').value});
+  if(r.ok){toast('Área criada! ✅');closeM();lAreas();}
+  else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
-
 async function svEditArea(a){
-  const btn=document.getElementById('btn-sv-area');
+  const btn=document.getElementById('bsa');
   const n=document.getElementById('an').value.trim();
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
-  const r=await apiU('areas',{
-    ...a,
-    nome:n,
-    descricao:document.getElementById('ad').value,
-    responsavel:document.getElementById('ar').value,
-    ativo:document.getElementById('aativo').value
-  });
+  const r=await apiU('areas',{...a,nome:n,descricao:document.getElementById('ad').value,responsavel:document.getElementById('ar').value,ativo:document.getElementById('aativo').value});
   if(r.ok){toast('Área atualizada! ✅');closeM();lAreas();}
   else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
@@ -448,20 +409,16 @@ async function svEditArea(a){
 // ════════════════════════════════
 async function pUsers(){
   document.getElementById('main').innerHTML=`
-  <div class="ph">
-    <div><div class="pt">Usuários</div><div class="ps">Gerenciamento de perfis e acessos</div></div>
-    <button class="btn bp" onclick="mUser()">+ Novo Usuário</button>
-  </div>
+  <div class="ph"><div><div class="pt">Usuários</div><div class="ps">Gerenciamento de perfis e acessos</div></div>
+  <button class="btn bp" onclick="mUser()">+ Novo Usuário</button></div>
   <div class="cnt"><div id="ul">${ld()}</div></div>`;
   await lUsers();
 }
-
 async function lUsers(){
   const users=await apiG('usuarios');
   const el=document.getElementById('ul');if(!el)return;
   if(!users.length){
-    el.innerHTML='<div class="emp" style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px"><div style="font-size:32px;margin-bottom:10px">👥</div><div style="font-size:14px;font-weight:600;margin-bottom:6px">Nenhum usuário cadastrado</div><div style="font-size:13px;color:var(--gray-mid)">Clique em "+ Novo Usuário" para começar</div></div>';
-    return;
+    el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)"><div style="font-size:32px;margin-bottom:10px">👥</div><div style="font-size:14px;font-weight:600;margin-bottom:6px">Nenhum usuário cadastrado</div></div>';return;
   }
   el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
     ${users.map(u=>`<div class="uc" onclick='mUser(${JSON.stringify(u).replace(/"/g,"&quot;")})'>${av(u.nome,48)}
@@ -473,7 +430,6 @@ async function lUsers(){
     </div>`).join('')}
   </div>`;
 }
-
 async function mUser(u){
   const areas=await apiG('areas');
   const novo=!u;
@@ -484,7 +440,6 @@ async function mUser(u){
         <div class="ua" onclick="document.getElementById('pi').click()">
           <div style="width:70px;height:70px;border-radius:50%;background:var(--orange-light);border:2px solid var(--orange-border);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:28px" id="pp">${u?ini(u.nome):'📷'}</div>
           <div style="font-size:12px;font-weight:600;color:var(--gray-mid)">Clique para enviar foto</div>
-          <div style="font-size:11px;color:var(--gray-mid)">JPG ou PNG</div>
         </div>
         <input type="file" id="pi" accept="image/*" style="display:none" onchange="prvFoto(event)"/>
       </div>
@@ -493,47 +448,37 @@ async function mUser(u){
         <div class="fg"><label class="flb">Área *</label>
           <select class="fsl" id="ua">
             <option value="">— Selecione —</option>
-            ${areas.length
-              ? areas.filter(a=>a.ativo!=='não').map(a=>`<option value="${esc(a.nome)}"${u?.area===a.nome?' selected':''}>${a.nome}</option>`).join('')
-              : ['Diretoria','Marketing','Vendas','Engenharia','Produto','Customer Success','Suporte','Financeiro','RH'].map(a=>`<option${u?.area===a?' selected':''}>${a}</option>`).join('')
-            }
+            ${areas.filter(a=>a.ativo!=='não').map(a=>`<option value="${esc(a.nome)}"${u?.area===a.nome?' selected':''}>${a.nome}</option>`).join('')}
           </select>
         </div>
       </div>
       <div class="fg"><label class="flb">E-mail *</label><input class="fi" id="ue" type="email" value="${esc(u?.email||'')}" placeholder="email@empresa.com"/></div>
       <div class="fr">
-        <div class="fg"><label class="flb">${novo?'Senha *':'Nova Senha (deixe em branco para manter)'}</label><input class="fi" id="us" type="password" placeholder="••••••••"/></div>
+        <div class="fg"><label class="flb">${novo?'Senha *':'Nova Senha (em branco = manter)'}</label><input class="fi" id="us" type="password" placeholder="••••••••"/></div>
         <div class="fg"><label class="flb">Confirmar Senha</label><input class="fi" id="us2" type="password" placeholder="••••••••"/></div>
       </div>
       <div class="fg"><label class="flb">Tipo de Usuário *</label>
         <select class="fsl" id="ut">
-          <option value="ADM"${u?.tipo==='ADM'?' selected':''}>ADM — Administrador (acesso total)</option>
-          <option value="CEO"${u?.tipo==='CEO'?' selected':''}>CEO — Visão estratégica completa</option>
-          <option value="GESTOR"${u?.tipo==='GESTOR'?' selected':''}>Gestor de Área — Acesso à sua área</option>
+          <option value="ADM"${u?.tipo==='ADM'?' selected':''}>ADM — Administrador</option>
+          <option value="CEO"${u?.tipo==='CEO'?' selected':''}>CEO — Visão estratégica</option>
+          <option value="GESTOR"${u?.tipo==='GESTOR'?' selected':''}>Gestor de Área</option>
         </select>
       </div>
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="btn-sv-user" onclick="svUser('${u?.id||''}','${esc(u?.criado_em||'')}')">💾 Salvar</button>
+      <button class="btn bp" id="bsu" onclick="svUser('${u?.id||''}','${esc(u?.criado_em||'')}')">💾 Salvar</button>
     </div>
   </div>`);
 }
-
-function prvFoto(e){
-  const f=e.target.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=ev=>{document.getElementById('pp').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`};
-  r.readAsDataURL(f);
-}
-
+function prvFoto(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{document.getElementById('pp').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`};r.readAsDataURL(f)}
 async function svUser(id,ce){
-  const btn=document.getElementById('btn-sv-user');
+  const btn=document.getElementById('bsu');
   const n=document.getElementById('un').value.trim();
   const e=document.getElementById('ue').value.trim();
+  const area=document.getElementById('ua').value;
   const s=document.getElementById('us').value;
   const s2=document.getElementById('us2').value;
-  const area=document.getElementById('ua').value;
   if(!n){toast('Informe o nome completo','err');return}
   if(!e){toast('Informe o e-mail','err');return}
   if(!area){toast('Selecione a área','err');return}
@@ -541,13 +486,8 @@ async function svUser(id,ce){
   if(s&&s!==s2){toast('As senhas não conferem!','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
   const body={nome:n,area,email:e,senha:s||'',tipo:document.getElementById('ut').value,foto:''};
-  let r;
-  if(!id){
-    r=await apiP('usuarios',body);
-  } else {
-    r=await apiU('usuarios',{...body,id,ativo:'sim',criado_em:ce});
-  }
-  if(r.ok){toast('Usuário salvo com sucesso! ✅');closeM();lUsers();}
+  const r=!id?await apiP('usuarios',body):await apiU('usuarios',{...body,id,ativo:'sim',criado_em:ce});
+  if(r.ok){toast('Usuário salvo! ✅');closeM();lUsers();}
   else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
@@ -556,23 +496,19 @@ async function svUser(id,ce){
 // ════════════════════════════════
 async function pCOkr(){
   document.getElementById('main').innerHTML=`
-  <div class="ph">
-    <div><div class="pt">OKRs da Companhia</div><div class="ps">Objetivos estratégicos corporativos</div></div>
-    <button class="btn bp" onclick="mNovoCOkr()">+ Novo OKR</button>
-  </div>
+  <div class="ph"><div><div class="pt">OKRs da Companhia</div><div class="ps">Objetivos estratégicos corporativos</div></div>
+  <button class="btn bp" onclick="mNovoCOkr()">+ Novo OKR</button></div>
   <div class="cnt"><div id="col">${ld()}</div></div>`;
   await lCOkr();
 }
-
 async function lCOkr(){
   const[okrs,krs]=await Promise.all([apiG('okr_companhia'),apiG('key_results')]);
   const el=document.getElementById('col');if(!el)return;
-  if(!okrs.length){el.innerHTML='<div class="emp" style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px">Nenhum OKR cadastrado. Clique em "+ Novo OKR" para começar.</div>';return}
+  if(!okrs.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)">Nenhum OKR cadastrado ainda.</div>';return}
   el.innerHTML=okrs.map(o=>`<div class="oi">
     <div class="oh" onclick="tog('${o.id}')">
       <span class="chv" id="cv-${o.id}">▶</span>
-      <div style="flex:1;min-width:0">
-        <div class="on">${o.nome}</div>
+      <div style="flex:1;min-width:0"><div class="on">${o.nome}</div>
         <div class="om"><span>👤 ${o.responsavel||'—'}</span><span>📅 ${o.data_inicio||'—'} → ${o.data_fim||'—'}</span>${bdg(o.status||'Pendente')}${hbdg(o.saude||'green')}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;min-width:200px">${pb(o.progresso)}<span style="font-size:13px;font-weight:800;min-width:36px;text-align:right">${o.progresso||0}%</span></div>
@@ -581,8 +517,7 @@ async function lCOkr(){
       <div style="font-size:10px;font-weight:700;color:var(--gray-mid);text-transform:uppercase;margin-bottom:8px">Key Results</div>
       ${krs.filter(k=>k.okr_id==o.id).map(k=>`<div class="kr">
         <span class="bdg ${k.tipo==='KPI'?'bb':'bor'}">${k.tipo}</span>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600">${k.nome}</div>
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${k.nome}</div>
           ${k.tipo==='KPI'?`<div style="font-size:11px;color:var(--gray-mid)">${k.unidade} ${parseInt(k.atual||0).toLocaleString('pt-BR')} / Meta: ${parseInt(k.meta||0).toLocaleString('pt-BR')}</div>`:''}
         </div>
         <div style="min-width:150px">${pb(k.progresso)}<div style="text-align:right;font-size:11px;font-weight:700;margin-top:2px">${k.progresso||0}%</div></div>
@@ -591,46 +526,33 @@ async function lCOkr(){
     </div>
   </div>`).join('');
 }
-
-function tog(id){
-  const c=document.getElementById(`oc-${id}`),v=document.getElementById(`cv-${id}`);
-  const o=c.classList.contains('open');
-  c.classList.toggle('open',!o);v.classList.toggle('open',!o);
-  v.textContent=o?'▶':'▼';
-}
-
+function tog(id){const c=document.getElementById(`oc-${id}`),v=document.getElementById(`cv-${id}`);const o=c.classList.contains('open');c.classList.toggle('open',!o);v.classList.toggle('open',!o);v.textContent=o?'▶':'▼'}
 function mNovoCOkr(){
   openM(`<div class="md">
     <div class="mh"><div class="mt">Novo OKR Companhia</div><button class="mc2" onclick="closeM()">×</button></div>
     <div class="mbd">
       <div class="fg"><label class="flb">Nome do Objetivo *</label><input class="fi" id="mn" placeholder="Ex: Crescer receita 40% no ano"/></div>
-      <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="md2" placeholder="Descreva o objetivo estratégico..."></textarea></div>
+      <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="md2" placeholder="Descreva o objetivo..."></textarea></div>
       <div class="fr">
-        <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2" placeholder="Nome do responsável"/></div>
+        <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2" placeholder="Nome"/></div>
         <div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div>
       </div>
       <div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div>
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="btn-sv-okrc" onclick="svCOkr()">💾 Salvar</button>
+      <button class="btn bp" id="bsc2" onclick="svCOkr()">💾 Salvar</button>
     </div>
   </div>`);
 }
-
 async function svCOkr(){
-  const btn=document.getElementById('btn-sv-okrc');
+  const btn=document.getElementById('bsc2');
   const n=document.getElementById('mn').value.trim();
   if(!n){toast('Informe o nome do objetivo','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
-  const r=await apiP('okr_companhia',{
-    nome:n,descricao:document.getElementById('md2').value,
-    responsavel:document.getElementById('mr2').value,
-    data_inicio:document.getElementById('mi').value,
-    data_fim:document.getElementById('mf').value
-  });
-  if(r.ok){toast('OKR criado! Enviado para aprovação. ✅');closeM();lCOkr();}
-  else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  const r=await apiP('okr_companhia',{nome:n,descricao:document.getElementById('md2').value,responsavel:document.getElementById('mr2').value,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value});
+  if(r.ok){toast('OKR criado! ✅');closeM();lCOkr();}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 // ════════════════════════════════
@@ -638,18 +560,15 @@ async function svCOkr(){
 // ════════════════════════════════
 async function pAOkr(){
   document.getElementById('main').innerHTML=`
-  <div class="ph">
-    <div><div class="pt">OKRs por Área</div><div class="ps">Objetivos departamentais</div></div>
-    <button class="btn bp" onclick="mNovoAOkr()">+ Novo OKR Área</button>
-  </div>
+  <div class="ph"><div><div class="pt">OKRs por Área</div><div class="ps">Objetivos departamentais</div></div>
+  <button class="btn bp" onclick="mNovoAOkr()">+ Novo OKR Área</button></div>
   <div class="cnt"><div id="aol">${ld()}</div></div>`;
   await lAOkr();
 }
-
 async function lAOkr(){
   const[ao,co]=await Promise.all([apiG('okr_area'),apiG('okr_companhia')]);
   const el=document.getElementById('aol');if(!el)return;
-  if(!ao.length){el.innerHTML='<div class="emp" style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px">Nenhum OKR de área cadastrado.</div>';return}
+  if(!ao.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)">Nenhum OKR de área cadastrado.</div>';return}
   const areas=[...new Set(ao.map(o=>o.area).filter(Boolean))];
   el.innerHTML=areas.map(area=>`
   <div style="margin-bottom:22px">
@@ -659,8 +578,7 @@ async function lAOkr(){
     </div>
     ${ao.filter(o=>o.area===area).map(o=>`<div class="oi" style="margin-bottom:8px">
       <div class="oh" style="cursor:default">
-        <div style="flex:1;min-width:0">
-          <div class="on">${o.nome}</div>
+        <div style="flex:1;min-width:0"><div class="on">${o.nome}</div>
           <div class="om"><span>👤 ${o.responsavel||'—'}</span><span style="color:var(--blue);font-size:11px">→ ${co.find(c=>c.id==o.okr_companhia_id)?.nome||'—'}</span>${bdg(o.status||'Pendente')}${hbdg(o.saude||'green')}</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;min-width:200px">${pb(o.progresso)}<span style="font-size:13px;font-weight:800;min-width:36px;text-align:right">${o.progresso||0}%</span></div>
@@ -668,25 +586,18 @@ async function lAOkr(){
     </div>`).join('')}
   </div>`).join('');
 }
-
 async function mNovoAOkr(){
   const[co,areas]=await Promise.all([apiG('okr_companhia'),apiG('areas')]);
   openM(`<div class="md">
     <div class="mh"><div class="mt">Novo OKR Área</div><button class="mc2" onclick="closeM()">×</button></div>
     <div class="mbd">
-      <div class="fg"><label class="flb">OKR Companhia vinculado *</label>
+      <div class="fg"><label class="flb">OKR Companhia *</label>
         <select class="fsl" id="mc3"><option value="">— Selecione —</option>${co.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
       </div>
-      <div class="fg"><label class="flb">Nome do Objetivo *</label><input class="fi" id="mn" placeholder="Objetivo da área"/></div>
+      <div class="fg"><label class="flb">Nome *</label><input class="fi" id="mn" placeholder="Objetivo da área"/></div>
       <div class="fr">
         <div class="fg"><label class="flb">Área *</label>
-          <select class="fsl" id="ma">
-            <option value="">— Selecione —</option>
-            ${areas.length
-              ? areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')
-              : ['Marketing','Vendas','Engenharia','Produto','Customer Success','Suporte','RH','Financeiro'].map(a=>`<option>${a}</option>`).join('')
-            }
-          </select>
+          <select class="fsl" id="ma"><option value="">— Selecione —</option>${areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')}</select>
         </div>
         <div class="fg"><label class="flb">Responsável</label><input class="fi" id="mr2"/></div>
       </div>
@@ -697,25 +608,18 @@ async function mNovoAOkr(){
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="btn-sv-aokr" onclick="svAOkr()">💾 Salvar</button>
+      <button class="btn bp" id="bsao" onclick="svAOkr()">💾 Salvar</button>
     </div>
   </div>`);
 }
-
 async function svAOkr(){
-  const btn=document.getElementById('btn-sv-aokr');
+  const btn=document.getElementById('bsao');
   const n=document.getElementById('mn').value.trim();
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
-  const r=await apiP('okr_area',{
-    okr_companhia_id:document.getElementById('mc3').value,
-    nome:n,area:document.getElementById('ma').value,
-    responsavel:document.getElementById('mr2').value,
-    data_inicio:document.getElementById('mi').value,
-    data_fim:document.getElementById('mf').value
-  });
+  const r=await apiP('okr_area',{okr_companhia_id:document.getElementById('mc3').value,nome:n,area:document.getElementById('ma').value,responsavel:document.getElementById('mr2').value,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value});
   if(r.ok){toast('OKR Área criado! ✅');closeM();lAOkr();}
-  else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 // ════════════════════════════════
@@ -724,10 +628,8 @@ async function svAOkr(){
 let _krc=[];
 async function pKR(){
   document.getElementById('main').innerHTML=`
-  <div class="ph">
-    <div><div class="pt">Key Results</div><div class="ps">KPIs e projetos estratégicos</div></div>
-    <button class="btn bp" onclick="mNovoKR()">+ Novo KR</button>
-  </div>
+  <div class="ph"><div><div class="pt">Key Results</div><div class="ps">KPIs e projetos estratégicos</div></div>
+  <button class="btn bp" onclick="mNovoKR()">+ Novo KR</button></div>
   <div class="cnt">
     <div class="tabs">
       <div class="tab active" onclick="fKR('todos',this)">Todos</div>
@@ -738,20 +640,16 @@ async function pKR(){
   </div>`;
   _krc=[];await lKR('todos');
 }
-
 async function lKR(f){
-  if(!_krc.length){
-    const[krs,ok]=await Promise.all([apiG('key_results'),apiG('okr_companhia')]);
-    _krc=krs.map(k=>({...k,_on:ok.find(o=>o.id==k.okr_id)?.nome||'—'}));
-  }
+  if(!_krc.length){const[krs,ok]=await Promise.all([apiG('key_results'),apiG('okr_companhia')]);_krc=krs.map(k=>({...k,_on:ok.find(o=>o.id==k.okr_id)?.nome||'—'}))}
   const list=f==='todos'?_krc:_krc.filter(k=>k.tipo===f);
   const el=document.getElementById('krl');if(!el)return;
-  if(!list.length){el.innerHTML='<div class="emp">Nenhum KR encontrado.</div>';return}
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-mid)">Nenhum KR encontrado.</div>';return}
   el.innerHTML=`<div style="overflow-x:auto"><table>
     <thead><tr><th>Tipo</th><th>Nome</th><th>Objetivo</th><th>Indicador</th><th>Progresso</th><th>Saúde</th><th>Ação</th></tr></thead>
     <tbody>${list.map(k=>`<tr>
       <td><span class="bdg ${k.tipo==='KPI'?'bb':'bor'}">${k.tipo}</span></td>
-      <td><div style="font-size:13px;font-weight:600">${k.nome}</div><div class="tds">👤 ${k.responsavel||'—'}</div></td>
+      <td><div style="font-size:13px;font-weight:600">${k.nome}</div><div style="font-size:11px;color:var(--gray-mid)">👤 ${k.responsavel||'—'}</div></td>
       <td style="font-size:12px;color:var(--gray-mid)">${k._on}</td>
       <td style="font-size:12px">${k.tipo==='KPI'?`${k.indicador} · ${k.unidade} ${parseInt(k.atual||0).toLocaleString('pt-BR')}/${parseInt(k.meta||0).toLocaleString('pt-BR')}`:'Projeto'}</td>
       <td style="min-width:120px">${pb(k.progresso)}<div style="text-align:right;font-size:11px;font-weight:700;margin-top:2px">${k.progresso||0}%</div></td>
@@ -760,9 +658,7 @@ async function lKR(f){
     </tr>`).join('')}</tbody>
   </table></div>`;
 }
-
 function fKR(f,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');_krc=[];lKR(f)}
-
 async function mNovoKR(){
   const ok=await apiG('okr_companhia');
   openM(`<div class="md">
@@ -771,7 +667,7 @@ async function mNovoKR(){
       <div class="fg"><label class="flb">Objetivo *</label>
         <select class="fsl" id="mo"><option value="">— Selecione —</option>${ok.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
       </div>
-      <div class="fg"><label class="flb">Nome do KR *</label><input class="fi" id="mn" placeholder="Ex: Receita Mensal Recorrente"/></div>
+      <div class="fg"><label class="flb">Nome do KR *</label><input class="fi" id="mn"/></div>
       <div class="fr">
         <div class="fg"><label class="flb">Tipo *</label>
           <select class="fsl" id="mtp" onchange="document.getElementById('kpf').style.display=this.value==='KPI'?'block':'none'">
@@ -797,69 +693,42 @@ async function mNovoKR(){
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="btn-sv-kr" onclick="svKR()">💾 Salvar</button>
+      <button class="btn bp" id="bskr" onclick="svKR()">💾 Salvar</button>
     </div>
   </div>`);
 }
-
 async function svKR(){
-  const btn=document.getElementById('btn-sv-kr');
+  const btn=document.getElementById('bskr');
   const n=document.getElementById('mn').value.trim();
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
-  const r=await apiP('key_results',{
-    okr_id:document.getElementById('mo').value,
-    tipo:document.getElementById('mtp').value,
-    nome:n,responsavel:document.getElementById('mr2').value,
-    indicador:document.getElementById('mind')?.value||'crescente',
-    unidade:document.getElementById('mun')?.value||'',
-    atual:document.getElementById('mat')?.value||0,
-    meta:document.getElementById('mme')?.value||0,
-    data_inicio:document.getElementById('mi').value,
-    data_fim:document.getElementById('mf').value
-  });
+  const r=await apiP('key_results',{okr_id:document.getElementById('mo').value,tipo:document.getElementById('mtp').value,nome:n,responsavel:document.getElementById('mr2').value,indicador:document.getElementById('mind')?.value||'crescente',unidade:document.getElementById('mun')?.value||'',atual:document.getElementById('mat')?.value||0,meta:document.getElementById('mme')?.value||0,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value});
   if(r.ok){toast('KR criado! ✅');closeM();_krc=[];lKR('todos');}
-  else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
-
 function mUpdKR(k){
   openM(`<div class="md">
     <div class="mh"><div class="mt">✏️ Atualizar KR</div><button class="mc2" onclick="closeM()">×</button></div>
     <div class="mbd">
-      <div style="background:var(--blue-light);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--blue)">
-        📊 <strong>${k.nome}</strong>${k.tipo==='KPI'?` · Meta: ${k.unidade} ${parseInt(k.meta||0).toLocaleString('pt-BR')}`:''}
+      <div style="background:var(--blue-light);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--blue)">📊 <strong>${k.nome}</strong>${k.tipo==='KPI'?` · Meta: ${k.unidade} ${parseInt(k.meta||0).toLocaleString('pt-BR')}`:''}
       </div>
-      ${k.tipo==='KPI'?`<div class="fr">
-        <div class="fg"><label class="flb">Valor Atual</label><input class="fi" id="mat" type="number" value="${k.atual||0}"/></div>
-        <div class="fg"><label class="flb">Meta</label><input class="fi" id="mme" type="number" value="${k.meta||0}"/></div>
-      </div>`:''}
+      ${k.tipo==='KPI'?`<div class="fr"><div class="fg"><label class="flb">Valor Atual</label><input class="fi" id="mat" type="number" value="${k.atual||0}"/></div><div class="fg"><label class="flb">Meta</label><input class="fi" id="mme" type="number" value="${k.meta||0}"/></div></div>`:''}
       <div class="fg"><label class="flb">Saúde</label>
-        <select class="fsl" id="ms">
-          <option value="green"${k.saude==='green'?' selected':''}>✅ No prazo</option>
-          <option value="yellow"${k.saude==='yellow'?' selected':''}>⚠️ Atenção</option>
-          <option value="red"${k.saude==='red'?' selected':''}>🔴 Em risco</option>
-        </select>
+        <select class="fsl" id="ms"><option value="green"${k.saude==='green'?' selected':''}>✅ No prazo</option><option value="yellow"${k.saude==='yellow'?' selected':''}>⚠️ Atenção</option><option value="red"${k.saude==='red'?' selected':''}>🔴 Em risco</option></select>
       </div>
       <div class="fg"><label class="flb">Comentário</label><textarea class="fta" id="mcom" placeholder="Descreva o andamento..."></textarea></div>
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="btn-sv-kru" onclick='svUpdKR(${JSON.stringify(k).replace(/"/g,"&quot;")})'>💾 Salvar</button>
+      <button class="btn bp" id="bskru" onclick='svUpdKR(${JSON.stringify(k).replace(/"/g,"&quot;")})'>💾 Salvar</button>
     </div>
   </div>`);
 }
-
 async function svUpdKR(k){
-  const btn=document.getElementById('btn-sv-kru');
-  btn.disabled=true;btn.textContent='Salvando...';
-  const r=await apiU('key_results',{
-    ...k,
-    atual:document.getElementById('mat')?.value||k.atual,
-    meta:document.getElementById('mme')?.value||k.meta,
-    saude:document.getElementById('ms').value
-  });
+  const btn=document.getElementById('bskru');btn.disabled=true;btn.textContent='Salvando...';
+  const r=await apiU('key_results',{...k,atual:document.getElementById('mat')?.value||k.atual,meta:document.getElementById('mme')?.value||k.meta,saude:document.getElementById('ms').value});
   if(r.ok){toast('KR atualizado! ✅');closeM();_krc=[];lKR('todos');}
-  else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 // ════════════════════════════════
@@ -867,27 +736,23 @@ async function svUpdKR(k){
 // ════════════════════════════════
 async function pInit(){
   document.getElementById('main').innerHTML=`
-  <div class="ph">
-    <div><div class="pt">Iniciativas</div><div class="ps">Ações operacionais dos KRs Projeto</div></div>
-    <button class="btn bp" onclick="mNovaInit()">+ Nova Iniciativa</button>
-  </div>
+  <div class="ph"><div><div class="pt">Iniciativas</div><div class="ps">Ações operacionais dos KRs Projeto</div></div>
+  <button class="btn bp" onclick="mNovaInit()">+ Nova Iniciativa</button></div>
   <div class="cnt"><div id="il">${ld()}</div></div>`;
   await lInit();
 }
-
 async function lInit(){
   const[krs,inits]=await Promise.all([apiG('key_results'),apiG('iniciativas')]);
   const proj=krs.filter(k=>k.tipo==='Projeto');
   const el=document.getElementById('il');if(!el)return;
-  if(!proj.length){el.innerHTML='<div class="emp" style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px">Nenhum KR Projeto cadastrado.</div>';return}
+  if(!proj.length){el.innerHTML='<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--gray-mid)">Nenhum KR Projeto cadastrado.</div>';return}
   el.innerHTML=proj.map(kr=>{
     const mine=inits.filter(i=>i.kr_id==kr.id);
     const act=mine.filter(i=>i.status!=='Cancelada');
     const w=act.length?Math.round(100/act.length):0;
     const pct=act.length?Math.round(act.reduce((s,i)=>s+({'Concluída':1,'Concluída com atraso':1,'Em andamento':.5,'Não iniciada':0}[i.status]||0),0)/act.length*100):0;
     return`<div class="card" style="margin-bottom:16px">
-      <div class="ch">
-        <div><div class="ct">🎯 ${kr.nome}</div><div style="font-size:11px;color:var(--gray-mid);margin-top:2px">${act.length} ativas · peso: ${w}% cada</div></div>
+      <div class="ch"><div><div class="ct">🎯 ${kr.nome}</div><div style="font-size:11px;color:var(--gray-mid);margin-top:2px">${act.length} ativas · peso: ${w}% cada</div></div>
         <div style="display:flex;align-items:center;gap:12px"><div style="min-width:160px">${pb(pct)}<div style="text-align:right;font-size:11px;font-weight:700;margin-top:2px">${pct}%</div></div>${hbdg(kr.saude||'green')}</div>
       </div>
       <div class="cb" style="padding:0"><table>
@@ -905,7 +770,6 @@ async function lInit(){
     </div>`;
   }).join('');
 }
-
 async function mNovaInit(){
   const krs=(await apiG('key_results')).filter(k=>k.tipo==='Projeto');
   openM(`<div class="md">
@@ -914,43 +778,32 @@ async function mNovaInit(){
       <div class="fg"><label class="flb">KR Projeto *</label>
         <select class="fsl" id="mk"><option value="">— Selecione —</option>${krs.map(k=>`<option value="${k.id}">${k.nome}</option>`).join('')}</select>
       </div>
-      <div class="fg"><label class="flb">Nome *</label><input class="fi" id="mn" placeholder="Ex: Criação de materiais de campanha"/></div>
+      <div class="fg"><label class="flb">Nome *</label><input class="fi" id="mn" placeholder="Nome da iniciativa"/></div>
       <div class="fg"><label class="flb">Descrição</label><textarea class="fta" id="md2" placeholder="Descreva a iniciativa..."></textarea></div>
       <div class="fr">
         <div class="fg"><label class="flb">Data Início</label><input class="fi" id="mi" type="date"/></div>
         <div class="fg"><label class="flb">Data Fim</label><input class="fi" id="mf" type="date"/></div>
       </div>
       <div class="fr">
-        <div class="fg"><label class="flb">Status</label>
-          <select class="fsl" id="mst"><option>Não iniciada</option><option>Em andamento</option></select>
-        </div>
-        <div class="fg"><label class="flb">Comentário</label><input class="fi" id="mcom" placeholder="Observações iniciais..."/></div>
+        <div class="fg"><label class="flb">Status</label><select class="fsl" id="mst"><option>Não iniciada</option><option>Em andamento</option></select></div>
+        <div class="fg"><label class="flb">Comentário</label><input class="fi" id="mcom" placeholder="Observações..."/></div>
       </div>
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="btn-sv-init" onclick="svInit()">💾 Salvar</button>
+      <button class="btn bp" id="bsin" onclick="svInit()">💾 Salvar</button>
     </div>
   </div>`);
 }
-
 async function svInit(){
-  const btn=document.getElementById('btn-sv-init');
+  const btn=document.getElementById('bsin');
   const n=document.getElementById('mn').value.trim();
   if(!n){toast('Informe o nome','err');return}
   btn.disabled=true;btn.textContent='Salvando...';
-  const r=await apiP('iniciativas',{
-    kr_id:document.getElementById('mk').value,
-    nome:n,descricao:document.getElementById('md2').value,
-    data_inicio:document.getElementById('mi').value,
-    data_fim:document.getElementById('mf').value,
-    status:document.getElementById('mst').value,
-    comentario:document.getElementById('mcom').value
-  });
+  const r=await apiP('iniciativas',{kr_id:document.getElementById('mk').value,nome:n,descricao:document.getElementById('md2').value,data_inicio:document.getElementById('mi').value,data_fim:document.getElementById('mf').value,status:document.getElementById('mst').value,comentario:document.getElementById('mcom').value});
   if(r.ok){toast('Iniciativa criada! ✅');closeM();lInit();}
-  else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
-
 function mUpdInit(i){
   openM(`<div class="md">
     <div class="mh"><div class="mt">✏️ Atualizar Iniciativa</div><button class="mc2" onclick="closeM()">×</button></div>
@@ -967,21 +820,15 @@ function mUpdInit(i){
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeM()">Cancelar</button>
-      <button class="btn bp" id="btn-sv-initu" onclick='svUpdInit(${JSON.stringify(i).replace(/"/g,"&quot;")})'>💾 Salvar</button>
+      <button class="btn bp" id="bsinu" onclick='svUpdInit(${JSON.stringify(i).replace(/"/g,"&quot;")})'>💾 Salvar</button>
     </div>
   </div>`);
 }
-
 async function svUpdInit(i){
-  const btn=document.getElementById('btn-sv-initu');
-  btn.disabled=true;btn.textContent='Salvando...';
-  const r=await apiU('iniciativas',{
-    ...i,
-    status:document.getElementById('mst').value,
-    comentario:document.getElementById('mcom').value
-  });
+  const btn=document.getElementById('bsinu');btn.disabled=true;btn.textContent='Salvando...';
+  const r=await apiU('iniciativas',{...i,status:document.getElementById('mst').value,comentario:document.getElementById('mcom').value});
   if(r.ok){toast('Iniciativa atualizada! ✅');closeM();lInit();}
-  else{toast('Erro: '+(r.erro||'tente novamente'),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
+  else{toast('Erro: '+(r.erro||''),'err');btn.disabled=false;btn.textContent='💾 Salvar';}
 }
 
 // ════════════════════════════════
@@ -996,10 +843,7 @@ async function pMaint(){
       <span class="fl">🏬 Área:</span>
       <select class="fs" id="mfa" onchange="lMaint()">
         <option value="">Todas</option>
-        ${areas.length
-          ? areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')
-          : ['Marketing','Vendas','Engenharia','Produto','Customer Success','Suporte'].map(a=>`<option>${a}</option>`).join('')
-        }
+        ${areas.filter(a=>a.ativo!=='não').map(a=>`<option>${a.nome}</option>`).join('')}
       </select>
       <div class="fd"></div>
       <span class="fl">📅 Mês:</span>
@@ -1009,12 +853,11 @@ async function pMaint(){
   </div>`;
   await lMaint();
 }
-
 async function lMaint(){
   const area=document.getElementById('mfa')?.value||'';
   const[krs,inits]=await Promise.all([apiG('key_results'),apiG('iniciativas')]);
-  const kpis=krs.filter(k=>k.tipo==='KPI'&&(!area||(k.responsavel||'').toLowerCase().includes(area.toLowerCase().slice(0,5))||area===''));
-  const proj=krs.filter(k=>k.tipo==='Projeto'&&(!area||(k.responsavel||'').toLowerCase().includes(area.toLowerCase().slice(0,5))||area===''));
+  const kpis=krs.filter(k=>k.tipo==='KPI');
+  const proj=krs.filter(k=>k.tipo==='Projeto');
   const ai=proj.flatMap(kr=>inits.filter(i=>i.kr_id==kr.id));
   const el=document.getElementById('mc4');if(!el)return;
   el.innerHTML=`
@@ -1035,7 +878,7 @@ async function lMaint(){
       </div>
       <div style="text-align:right"><button class="btn bp bsm" onclick='sMKPI(${JSON.stringify(k).replace(/"/g,"&quot;")})'>💾 Salvar</button></div>
     </div>
-  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid);margin-bottom:16px">Nenhum KR KPI para esta área.</div>'}
+  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid);margin-bottom:16px">Nenhum KR KPI cadastrado.</div>'}
   <div style="font-size:13px;font-weight:700;margin:16px 0 12px;color:var(--gray-dark)">🎯 Iniciativas — Atualizar Status</div>
   ${ai.length?ai.map(i=>`<div class="card" style="margin-bottom:10px">
     <div class="ch"><div><div class="ct">${i.nome}</div><div style="font-size:11px;color:var(--gray-mid)">Prazo: ${i.data_fim||'—'}</div></div>${bdg(i.status||'Não iniciada')}</div>
@@ -1048,16 +891,15 @@ async function lMaint(){
       </div>
       <div style="text-align:right"><button class="btn bp bsm" onclick='sMInit(${JSON.stringify(i).replace(/"/g,"&quot;")})'>💾 Salvar</button></div>
     </div>
-  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid)">Nenhuma iniciativa para esta área.</div>'}`;
+  </div>`).join(''):'<div style="background:var(--gray-lighter);border-radius:8px;padding:16px;text-align:center;color:var(--gray-mid)">Nenhuma iniciativa cadastrada.</div>'}`;
 }
-
 async function sMKPI(k){
   const r=await apiU('key_results',{...k,atual:document.getElementById(`kc-${k.id}`).value,meta:document.getElementById(`km-${k.id}`).value,saude:document.getElementById(`ks-${k.id}`).value});
-  if(r.ok)toast('KPI atualizado! ✅');else toast('Erro ao salvar: '+(r.erro||''),'err');
+  if(r.ok)toast('KPI atualizado! ✅');else toast('Erro ao salvar','err');
 }
 async function sMInit(i){
   const r=await apiU('iniciativas',{...i,status:document.getElementById(`is-${i.id}`).value,comentario:document.getElementById(`ic-${i.id}`).value});
-  if(r.ok)toast('Iniciativa atualizada! ✅');else toast('Erro ao salvar: '+(r.erro||''),'err');
+  if(r.ok)toast('Iniciativa atualizada! ✅');else toast('Erro ao salvar','err');
 }
 
 // ════════════════════════════════
@@ -1076,21 +918,19 @@ async function pApprov(){
   </div>`;
   await lApprov('Pendente',null);
 }
-
 async function lApprov(f,el){
   if(el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
   const all=await apiG('aprovacoes');
   const items=all.filter(a=>a.status===f);
   document.getElementById('bc').textContent=all.filter(a=>a.status==='Pendente').length;
   const cont=document.getElementById('al');if(!cont)return;
-  if(!items.length){cont.innerHTML='<div class="emp">✅ Nenhum item nesta categoria</div>';return}
+  if(!items.length){cont.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-mid)">✅ Nenhum item nesta categoria</div>';return}
   cont.innerHTML=items.map(a=>`
   <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px">
     <div style="width:38px;height:38px;border-radius:9px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${a.tipo?.includes('Key')?'📊':'🏬'}</div>
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div>
-          <div style="font-size:13px;font-weight:700;margin-bottom:3px">${a.nome}</div>
+        <div><div style="font-size:13px;font-weight:700;margin-bottom:3px">${a.nome}</div>
           <div style="font-size:11px;color:var(--gray-mid)">${a.tipo} · ${a.area} · por <strong>${a.solicitante}</strong> em ${a.data}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
@@ -1104,14 +944,12 @@ async function lApprov(f,el){
     </div>
   </div>`).join('');
 }
-
 async function dApprov(id,dec,a){
   const r=await apiU('aprovacoes',{...a,id,status:dec,aprovado_por:'Admin'});
-  if(r.ok){toast(`${dec} com sucesso! ✅`);pApprov();}
+  if(r.ok){toast(`${dec}! ✅`);pApprov();}
   else toast('Erro: '+(r.erro||''),'err');
 }
 
-// INIT
 go('dashboard');
 </script>
 </body>
